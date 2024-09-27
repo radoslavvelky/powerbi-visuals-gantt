@@ -379,6 +379,8 @@ export class Gantt implements IVisual {
 
     private collapsedTasksUpdateIDs: string[] = [];
 
+    private currentDateType: DateType;  //DateType[settings.dateTypeCardSettings.type.value.value] //DateType[this.viewModel.settings.dateTypeCardSettings.type.value.value] 
+
     constructor(options: VisualConstructorOptions) {
         this.init(options);
     }
@@ -425,20 +427,16 @@ export class Gantt implements IVisual {
             .append("g")
             .classed(Gantt.Tasks.className, true);
 
-        // create date type container
-        /*
+        // create dateType container
         this.dateTypeGroup = this.ganttSvg
             .append("g")
             .classed(Gantt.DateTypeGroup.className, true);
         this.dateTypeGroup
-            //.data(["Se", "Mi", "Ho", "Da", "Mo", "Ye"])    //d3.range(6)
             .append("rect")
-            .attr('x', (d, i) => i * (300/6))   //barWidth = width / positionCount;
-            .attr("width", "300px")
+            .attr("width", "150px")
             .attr("y", "-20")
             .attr("height", "40px")
-            .attr("fill", axisBackgroundColor);
-            */
+            .attr("fill", axisBackgroundColor);            
 
         // create axis container
         this.axisGroup = this.ganttSvg
@@ -497,11 +495,34 @@ export class Gantt implements IVisual {
 
                 this.axisGroup
                     .attr("transform", SVGManipulations.translate(taskLabelsWidth + this.margin.left + Gantt.SubtasksLeftMargin, Gantt.TaskLabelsMarginTop + scrollTop));
+                this.dateTypeGroup
+                    .attr("transform", SVGManipulations.translate(0, Gantt.TaskLabelsMarginTop + scrollTop));
                 this.lineGroup
                     .attr("transform", SVGManipulations.translate(scrollLeft, 0))
                     .attr("height", 20);
             }
         }, false);
+
+        this.dateTypeGroup.on('click', (d, i) => {
+            console.log(`Clicked position this.currentDateType: `, this.currentDateType);
+            if (this.currentDateType === DateType.Month) {
+                this.currentDateType = DateType.Quarter;
+            } else if (this.currentDateType === DateType.Quarter) {
+                this.currentDateType = DateType.Year;
+            } else if (this.currentDateType === DateType.Year) {
+                this.currentDateType = DateType.Hour;
+            } else if (this.currentDateType === DateType.Hour) {
+                this.currentDateType = DateType.Day;
+            } else if (this.currentDateType === DateType.Day) {
+                this.currentDateType = DateType.Week;
+            } else if (this.currentDateType === DateType.Week) {
+                this.currentDateType = DateType.Month;
+            } else {
+                this.currentDateType = DateType.Month;
+            }  
+            this.render();          
+          })
+
     }
 
     /**
@@ -519,6 +540,13 @@ export class Gantt implements IVisual {
         this.body
             .selectAll(Gantt.LegendTitle.selectorName)
             .remove();
+
+        //TODO: Remove components inside    
+        /*
+        this.dateTypeGroup
+            .selectAll(Gantt.D.selectorName)
+            .remove();
+        */
 
         this.axisGroup
             .selectAll(Gantt.AxisTick.selectorName)
@@ -1651,11 +1679,13 @@ export class Gantt implements IVisual {
             this.clearViewport();
             return;
         }
-
+        
         this.viewport = lodashClone(options.viewport);
         this.margin = Gantt.DefaultMargin;
 
         this.eventService.renderingStarted(options);
+
+        this.currentDateType = DateType[this.viewModel.settings.dateTypeCardSettings.type.value.value] ;
 
         this.render();
 
@@ -1707,7 +1737,7 @@ export class Gantt implements IVisual {
                 endDate = new Date(endDate.valueOf() + (24 * 60 * 60 * 1000));
             }
 
-            const dateTypeMilliseconds: number = Gantt.getDateType(DateType[settings.dateTypeCardSettings.type.value.value]);
+            const dateTypeMilliseconds: number = Gantt.getDateType(DateType[this.currentDateType]);
             let ticks: number = Math.ceil(Math.round(endDate.valueOf() - startDate.valueOf()) / dateTypeMilliseconds);
             ticks = ticks < 2 ? 2 : ticks;
 
@@ -1732,6 +1762,7 @@ export class Gantt implements IVisual {
         this.setDimension(groupedTasks, axisLength, settings);
 
         this.renderTasks(groupedTasks);
+        this.updateDateTypeGroup();
         this.updateTaskLabels(groupedTasks, settings.taskLabelsCardSettings.width.value);
         this.updateElementsPositions(this.margin);
         this.createMilestoneLine(groupedTasks);
@@ -1853,7 +1884,7 @@ export class Gantt implements IVisual {
         options: GanttCalculateScaleAndDomainOptions,
         metaDataColumn: DataViewMetadataColumn): IAxisProperties {
 
-        const dateType: DateType = DateType[this.viewModel.settings.dateTypeCardSettings.type.value.value];
+        const dateType: DateType = DateType[this.currentDateType];
         const cultureSelector: string = this.host.locale;
         const xAxisDateFormatter: IValueFormatter = ValueFormatter.create({
             format: Gantt.DefaultValues.DateFormatStrings[dateType],
@@ -1987,25 +2018,16 @@ export class Gantt implements IVisual {
         });
     }
 
-    /*
-    private renderDateTypeScroll() {
-        const dataTypeShow: boolean = this.viewModel.settings.dateTypeCardSettings.showScroll.value;
-        if (dataTypeShow) {
-            this.dateTypeGroup.selectAll('rect')
-                .on('click', (d, i) => {
-                    console.log(`Clicked position ${i}`);
-                })
-                .on('mouseover', (d, i) => {
-                    console.log(`Mouseover position ${i}`);
-                    //d3.select(this).attr('fill', 'darkgray');
-                })
-                .on('mouseout', (d, i) => {
-                    console.log(`Mouseout position ${i}`);
-                    //d3.select(this).attr('fill', 'lightgray');
-                });
-            }
+    private renderDateType() {
+        const showDateType: boolean = this.viewModel.settings.dateTypeCardSettings.showScroll.value; 
+        const dateType: DateType = this.currentDateType;
+
+        if (showDateType) { 
+            this.dateTypeGroup
+            .transition();
+
+        }
     }
-            */
 
     private renderAxis(xAxisProperties: IAxisProperties, duration: number = Gantt.DefaultDuration): void {
         const axisColor: string = this.viewModel.settings.dateTypeCardSettings.axisColor.value.value;
@@ -2209,6 +2231,28 @@ export class Gantt implements IVisual {
                 .selectAll(Gantt.Label.selectorName)
                 .remove();
         }
+    }
+
+    private updateDateTypeGroup() {
+        this.dateTypeGroup
+            .selectAll("text")
+            .remove();
+
+        this.collapseAllGroup
+                .append("rect")
+                .attr("width", this.viewModel.settings.taskLabelsCardSettings.width.value)
+                .attr("height", 2 * Gantt.TaskLabelsMarginTop)
+                //.attr("fill", categoriesAreaBackgroundColor);
+            
+        const text = this.currentDateType;
+
+        this.dateTypeGroup
+            .append("text")
+            .attr("x", this.secondExpandAllIconOffset + this.groupLabelSize)
+            .attr("y", "15px")
+            .attr("font-size", "12px")
+            .attr("fill", this.colorHelper.getHighContrastColor("foreground", Gantt.DefaultValues.TaskLineColor))
+            .text(text);
     }
 
     private updateCollapseAllGroup(categoriesAreaBackgroundColor: string, taskLabelShow: boolean) {
