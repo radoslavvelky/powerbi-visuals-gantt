@@ -585,6 +585,11 @@
         },
         "dateType": {
             "properties": {
+                "showScroll": {
+                    "type": {
+                        "bool": false
+                    }
+                },
                 "type": {
                     "type": {
                         "text": true

@@ -91,6 +91,7 @@ export interface GroupedTask {
     index: number;
     name: string;
     tasks: Task[];
+    parent?: string;
 }
 
 export interface GanttChartFormatters {

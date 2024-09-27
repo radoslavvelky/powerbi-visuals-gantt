@@ -216,6 +216,7 @@ export class Gantt implements IVisual {
     private static ChartLine: ClassAndSelector = createClassAndSelector("chart-line");
     private static Body: ClassAndSelector = createClassAndSelector("gantt-body");
     private static AxisGroup: ClassAndSelector = createClassAndSelector("axis");
+    private static DateTypeGroup: ClassAndSelector = createClassAndSelector("date-type");
     private static Domain: ClassAndSelector = createClassAndSelector("domain");
     private static AxisTick: ClassAndSelector = createClassAndSelector("tick");
     private static Tasks: ClassAndSelector = createClassAndSelector("tasks");
@@ -353,6 +354,7 @@ export class Gantt implements IVisual {
     private ganttSvg: Selection<any>;
     private viewModel: GanttViewModel;
     private collapseAllGroup: Selection<any>;
+    private dateTypeGroup: Selection<any>;
     private axisGroup: Selection<any>;
     private chartGroup: Selection<any>;
     private taskGroup: Selection<any>;
@@ -422,6 +424,21 @@ export class Gantt implements IVisual {
         this.taskGroup = this.chartGroup
             .append("g")
             .classed(Gantt.Tasks.className, true);
+
+        // create date type container
+        /*
+        this.dateTypeGroup = this.ganttSvg
+            .append("g")
+            .classed(Gantt.DateTypeGroup.className, true);
+        this.dateTypeGroup
+            //.data(["Se", "Mi", "Ho", "Da", "Mo", "Ye"])    //d3.range(6)
+            .append("rect")
+            .attr('x', (d, i) => i * (300/6))   //barWidth = width / positionCount;
+            .attr("width", "300px")
+            .attr("y", "-20")
+            .attr("height", "40px")
+            .attr("fill", axisBackgroundColor);
+            */
 
         // create axis container
         this.axisGroup = this.ganttSvg
@@ -1653,11 +1670,13 @@ export class Gantt implements IVisual {
 
         const visibleTasks = this.viewModel.tasks
             .filter((task: Task) => task.visibility);
+        console.log("visibleTasks.length: " + visibleTasks.length);
         const tasks: Task[] = visibleTasks
             .map((task: Task, i: number) => {
                 task.index = i;
                 return task;
             });
+        console.log("tasks.length: " + tasks.length);
 
         if (this.interactivityService) {
             this.interactivityService.applySelectionStateToData(tasks);
@@ -1705,6 +1724,7 @@ export class Gantt implements IVisual {
             Gantt.TimeScale = <timeScale<Date, Date>>xAxisProperties.scale;
 
             this.renderAxis(xAxisProperties);
+            //this.renderDateTypeScroll();
         }
 
         axisLength = this.scaleAxisLength(axisLength);
@@ -1884,65 +1904,108 @@ export class Gantt implements IVisual {
     }
 
     private static getGroupTasks(tasks: Task[], groupTasks: boolean, collapsedTasks: string[]): GroupedTask[] {
+        console.log("getGroupTasks tasks: ", tasks);
+        console.log("getGroupTasks groupTasks: ", groupTasks);
         if (groupTasks) {
-            const groupedTasks: lodashDictionary<Task[]> = lodashGroupBy(tasks,
-                x => (x.parent ? `${x.parent}.${x.name}` : x.name));
-
-            const result: GroupedTask[] = [];
+            let result: GroupedTask[] = [];
+            const groupedTasks: lodashDictionary<Task[]> = lodashGroupBy(tasks, x => x.name);
+                //x => (x.parent ? `${x.parent}.${x.name}` : x.name));
+    
             const taskKeys: string[] = Object.keys(groupedTasks);
             const alreadyReviewedKeys: string[] = [];
 
+            let index = 0;
             taskKeys.forEach((key: string) => {
                 const isKeyAlreadyReviewed = alreadyReviewedKeys.includes(key);
                 if (!isKeyAlreadyReviewed) {
                     let name: string = key;
-                    if (groupedTasks[key] && groupedTasks[key].length && groupedTasks[key][0].parent && key.indexOf(groupedTasks[key][0].parent) !== -1) {
-                        name = key.substr(groupedTasks[key][0].parent.length + 1, key.length);
-                    }
 
-                    // add current task
-                    const taskRecord = <GroupedTask>{
+                    //if (groupedTasks[key] && groupedTasks[key].length && groupedTasks[key][0].parent && key.indexOf(groupedTasks[key][0].parent) !== -1) {
+                    //    name = key.substr(groupedTasks[key][0].parent.length + 1, key.length);
+                    //}
+    
+                    let parent = null;
+                    groupedTasks[key].forEach(t => parent = t.parent ? t.parent : parent);
+                    const groupRecord: GroupedTask = {
                         name,
-                        tasks: groupedTasks[key]
+                        tasks: groupedTasks[key],
+                        parent: parent,
+                        index: index
                     };
-                    result.push(taskRecord);
-                    alreadyReviewedKeys.push(key);
-
-                    // see all the children and add them
-                    groupedTasks[key].forEach((task: Task) => {
-                        if (task.children && !collapsedTasks.includes(task.name)) {
-                            task.children.forEach((childrenTask: Task) => {
-                                const childrenFullName = `${name}.${childrenTask.name}`;
-                                const isChildrenKeyAlreadyReviewed = alreadyReviewedKeys.includes(childrenFullName);
-
-                                if (!isChildrenKeyAlreadyReviewed) {
-                                    const childrenRecord = <GroupedTask>{
-                                        name: childrenTask.name,
-                                        tasks: groupedTasks[childrenFullName]
-                                    };
-                                    result.push(childrenRecord);
-                                    alreadyReviewedKeys.push(childrenFullName);
-                                }
-                            });
-                        }
-                    });
+                    index++;
+    
+                    result.push(groupRecord);
+                    alreadyReviewedKeys.push(key);    
                 }
             });
+    
+            result.sort((a, b) => {
+                    const parentsA: GroupedTask[] = [];
+                    const parentsB: GroupedTask[] = [];
 
-            result.forEach((x, i) => {
+                    parentsA.push(a);
+                    parentsB.push(b);
+
+                    let parentA = a.parent;
+                    let parentB = b.parent;
+            
+                    while (parentA !== null) {
+                        parentsA.unshift(result.find(task => task.name === parentA));
+                        parentA = parentsA[0].parent;
+                    }
+
+                    while (parentB !== null) { 
+                        parentsB.unshift(result.find(task => task.name === parentB));
+                        parentB = parentsB[0].parent;
+                    }
+
+                    let index = 0;
+                    let indexA = parentsA.length > 0 ? parentsA[0].index : -1;
+                    let indexB = parentsB.length > 0 ? parentsB[0].index : -1;
+                    while (index < parentsA.length && index < parentsB.length && indexA === indexB) {
+                        indexA = parentsA[index].index;
+                        indexB = parentsB[index].index;
+                        index++;
+                    }
+            
+                    return indexA - indexB;
+            });
+
+            result.forEach((x, i) => {                
                 x.tasks.forEach(t => t.index = i);
                 x.index = i;
             });
-
+    
             return result;
         }
-
+    
         return tasks.map(x => <GroupedTask>{
             name: x.name,
             index: x.index,
-            tasks: [x]
+            tasks: [x],
+            parent: null
         });
     }
+
+    /*
+    private renderDateTypeScroll() {
+        const dataTypeShow: boolean = this.viewModel.settings.dateTypeCardSettings.showScroll.value;
+        if (dataTypeShow) {
+            this.dateTypeGroup.selectAll('rect')
+                .on('click', (d, i) => {
+                    console.log(`Clicked position ${i}`);
+                })
+                .on('mouseover', (d, i) => {
+                    console.log(`Mouseover position ${i}`);
+                    //d3.select(this).attr('fill', 'darkgray');
+                })
+                .on('mouseout', (d, i) => {
+                    console.log(`Mouseout position ${i}`);
+                    //d3.select(this).attr('fill', 'lightgray');
+                });
+            }
+    }
+            */
 
     private renderAxis(xAxisProperties: IAxisProperties, duration: number = Gantt.DefaultDuration): void {
         const axisColor: string = this.viewModel.settings.dateTypeCardSettings.axisColor.value.value;
@@ -1988,6 +2051,22 @@ export class Gantt implements IVisual {
         }
 
         return defaultColor;
+    }
+
+    private getHierarchyLevel(task : GroupedTask, tasks: GroupedTask[]): number {
+        let level = 1;
+        if (!task.parent) {
+            return level;
+        }
+
+        let parent = task.parent;
+        while (parent !== null) {
+            const parentTask = tasks.find(task => task.name === parent);
+            parent = parentTask.parent;
+            level++;
+        }    
+        
+        return level;
     }
 
     /**
@@ -2040,12 +2119,18 @@ export class Gantt implements IVisual {
                 .classed(Gantt.ClickableArea.className, true)
                 .merge(axisLabelGroup);
 
+            //Title/Name label    
             clickableArea
                 .append("text")
+                
+                .attr("x", (task: GroupedTask) => (Gantt.TaskLineCoordinateX +                    
+                         this.getHierarchyLevel(task, tasks) * this.parentLabelOffset))
+                /*        
                 .attr("x", (task: GroupedTask) => (Gantt.TaskLineCoordinateX +
                     (task.tasks.every((task: Task) => !!task.parent)
                         ? Gantt.SubtasksLeftMargin
                         : (task.tasks[0].children && !!task.tasks[0].children.length) ? this.parentLabelOffset : 0)))
+                */       
                 .attr("class", (task: GroupedTask) => task.tasks[0].children ? "parent" : task.tasks[0].parent ? "child" : "normal-node")
                 .attr("y", (task: GroupedTask) => (task.index + 0.5) * this.getResourceLabelTopMargin())
                 .attr("fill", taskLabelsColor)
@@ -2056,6 +2141,7 @@ export class Gantt implements IVisual {
                 .append("title")
                 .text((task: GroupedTask) => task.name);
 
+            //Button Expand/Collapse    
             const buttonSelection = clickableArea
                 .filter((task: GroupedTask) => task.tasks[0].children && !!task.tasks[0].children.length)
                 .append("svg")
@@ -2073,6 +2159,7 @@ export class Gantt implements IVisual {
                 .attr("x", Gantt.DefaultValues.BarMargin)
                 .attr("fill", "transparent");
 
+            // Plus, Minus button color    
             const buttonPlusMinusColor = this.colorHelper.getHighContrastColor("foreground", Gantt.DefaultValues.PlusMinusColor);
             buttonSelection
                 .each(function (task: GroupedTask) {

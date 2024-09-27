@@ -12,3 +12,5 @@ webpack.statistics.prod.html
 
 # JetBrains
 .idea/
+package-lock.json
+yarn.lock
