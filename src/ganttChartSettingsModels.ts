@@ -460,9 +460,9 @@ export class TaskResourceCardSettings extends Card {
 
 export class DateTypeCardSettings extends Card {
 
-    showScroll = new formattingSettings.ToggleSwitch({
-        name: "showScroll",
-        displayNameKey: "Visual_DateType_ShowScroll",
+    showDateSwitch = new formattingSettings.ToggleSwitch({
+        name: "showDateSwitch",
+        displayNameKey: "Visual_DateType_showDateSwitch",
         value: false
     });
 
@@ -493,7 +493,7 @@ export class DateTypeCardSettings extends Card {
 
     name: string = "dateType";
     displayNameKey: string = "Visual_DateType";
-    slices = [this.showScroll, this.type, this.todayColor, this.axisColor, this.axisTextColor];
+    slices = [this.showDateSwitch, this.type, this.todayColor, this.axisColor, this.axisTextColor];
 }
 
 export class GanttChartSettingsModel extends Model { 

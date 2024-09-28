@@ -67,7 +67,7 @@
 	"Visual_DateType_Month": "Month",
   	"Visual_DateType_Quarter": "Quarter",
 	"Visual_DateType_Year": "Year",
-	"Visual_DateType_ShowScroll": "Show Scroll",
+	"Visual_DateType_showDateSwitch": "Show Date Switch",
 	"Visual_DateType_TodayColor": "Today Color",
 	"Visual_DateType_AxisColor": "Axis Color",
 	"Visual_DateType_AxisTextColor": "Axis Text Color",

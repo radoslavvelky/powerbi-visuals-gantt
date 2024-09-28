@@ -2019,7 +2019,7 @@ export class Gantt implements IVisual {
     }
 
     private renderDateType() {
-        const showDateType: boolean = this.viewModel.settings.dateTypeCardSettings.showScroll.value; 
+        const showDateType: boolean = this.viewModel.settings.dateTypeCardSettings.showDateSwitch.value; 
         const dateType: DateType = this.currentDateType;
 
         if (showDateType) { 
@@ -2249,9 +2249,9 @@ export class Gantt implements IVisual {
         this.dateTypeGroup
             .append("text")
             .attr("x", this.secondExpandAllIconOffset + this.groupLabelSize)
-            .attr("y", "15px")
+            .attr("y", "16px")
             .attr("font-size", "12px")
-            .attr("fill", this.colorHelper.getHighContrastColor("foreground", Gantt.DefaultValues.TaskLineColor))
+            .attr("fill", this.viewModel.settings.dateTypeCardSettings.axisColor.value.value)
             .text(text);
     }
 
