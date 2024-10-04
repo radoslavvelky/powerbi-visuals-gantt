@@ -2015,7 +2015,11 @@ export class Gantt implements IVisual {
         settings: GanttChartSettingsModel): void {
 
         const fullResourceLabelMargin = groupedTasks.length * this.getResourceLabelTopMargin();
-        let widthBeforeConversion = this.margin.left + settings.taskLabelsCardSettings.width.value + axisLength;
+        const taskLabelsWidth: number = settings.taskLabelsCardSettings.show.value
+            ? settings.taskLabelsCardSettings.width.value * (this.viewModel.columnsData.columns.length + 1)
+            : 0;
+
+        let widthBeforeConversion = this.margin.left + taskLabelsWidth + axisLength;
 
         if (settings.taskResourceCardSettings.show.value && settings.taskResourceCardSettings.position.value.value === ResourceLabelPosition.Right) {
             widthBeforeConversion += Gantt.DefaultValues.ResourceWidth;
