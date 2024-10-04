@@ -439,17 +439,6 @@ export class Gantt implements IVisual {
             .append("g")
             .classed(Gantt.Tasks.className, true);
 
-        // create dateType container
-        this.dateTypeGroup = this.ganttSvg
-            .append("g")
-            .classed(Gantt.DateTypeGroup.className, true);
-        this.dateTypeGroup
-            .append("rect")
-            .attr("width", "150px")
-            .attr("y", "-20")
-            .attr("height", "40px")
-            .attr("fill", axisBackgroundColor);            
-
         // create axis container
         this.axisGroup = this.ganttSvg
             .append("g")
@@ -498,6 +487,17 @@ export class Gantt implements IVisual {
             .append("g")
             .classed(Gantt.CollapseAll.className, true);
 
+        // create dateType container
+        this.dateTypeGroup = this.lineGroup
+            .append("g")
+            .classed(Gantt.DateTypeGroup.className, true);
+        this.dateTypeGroup
+            .append("rect")
+            .attr("width", "100px")
+            .attr("y", "-8")
+            .attr("height", "40px")
+            .attr("fill", axisBackgroundColor);            
+
         // create legend container
         const interactiveBehavior: IInteractiveBehavior = this.colorHelper.isHighContrast ? new OpacityLegendBehavior() : null;
         this.legend = createLegend(
@@ -519,8 +519,6 @@ export class Gantt implements IVisual {
 
                 this.axisGroup
                     .attr("transform", SVGManipulations.translate(taskLabelsWidth + this.margin.left + Gantt.SubtasksLeftMargin, Gantt.TaskLabelsMarginTop + scrollTop));
-                this.dateTypeGroup
-                    .attr("transform", SVGManipulations.translate(0, Gantt.TaskLabelsMarginTop + scrollTop));
                 this.lineGroup
                     .attr("transform", SVGManipulations.translate(scrollLeft, 0))
                     .attr("height", 20);
@@ -2405,7 +2403,7 @@ export class Gantt implements IVisual {
         this.dateTypeGroup
             .append("text")
             .attr("x", this.secondExpandAllIconOffset + this.groupLabelSize)
-            .attr("y", "16px")
+            .attr("y", "20px")
             .attr("font-size", "12px")
             .attr("fill", this.viewModel.settings.dateTypeCardSettings.axisColor.value.value)
             .text(text);
