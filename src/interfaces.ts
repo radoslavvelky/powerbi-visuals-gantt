@@ -32,6 +32,8 @@ import DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
 import DataViewValueColumnGroup = powerbi.DataViewValueColumnGroup;
 import ISelectionId = powerbi.visuals.ISelectionId;
 import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
+import DataViewValueColumns = powerbi.DataViewValueColumns;
+import PrimitiveValue = powerbi.PrimitiveValue;
 
 import { interactivitySelectionService as interactivityService } from "powerbi-visuals-utils-interactivityutils";
 import SelectableDataPoint = interactivityService.SelectableDataPoint;
@@ -65,6 +67,7 @@ export interface ExtraInformation {
 }
 
 export interface Task extends SelectableDataPoint {
+    id: number;
     index: number;
     name: string;
     start: Date;
@@ -88,6 +91,7 @@ export interface Task extends SelectableDataPoint {
 }
 
 export interface GroupedTask {
+    id: number;
     index: number;
     name: string;
     tasks: Task[];
@@ -105,6 +109,7 @@ export interface GanttViewModel {
     tasks: Task[];
     legendData: LegendData;
     milestonesData: MilestoneData;
+    columnsData: ColumnsData;
     taskTypes: TaskTypes;
     isDurationFilled: boolean;
     isEndDateFilled: boolean;
@@ -177,3 +182,19 @@ export interface MilestoneDataPoint {
 export interface MilestoneData {
     dataPoints: MilestoneDataPoint[];
 }
+
+export interface ColumnDataPoint {
+    name: string;
+    identity: ISelectionId;
+}
+
+export interface ColumnData {
+    name: string;
+    color: string;
+    valuePoints: ColumnDataPoint[];
+}
+
+export interface ColumnsData {
+    columns: ColumnData[];
+}
+

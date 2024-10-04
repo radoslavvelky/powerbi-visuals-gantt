@@ -101,6 +101,9 @@ import {
     MilestoneData,
     MilestoneDataPoint,
     MilestonePath,
+    ColumnsData,
+    ColumnData,
+    ColumnDataPoint,
     Task,
     TaskDaysOff,
     TaskTypeMetadata,
@@ -179,6 +182,7 @@ import createLegend = LegendModule.createLegend;
 import LegendDataPoint = legendInterfaces.LegendDataPoint;
 // powerbi.extensibility.utils.chart
 import IAxisProperties = axisInterfaces.IAxisProperties;
+import { indexWithName } from "powerbi-visuals-utils-typeutils/lib/extensions/arrayExtensions";
 
 const PercentFormat: string = "0.00 %;-0.00 %;0.00 %";
 const ScrollMargin: number = 100;
@@ -202,6 +206,7 @@ const GanttDurationUnitType = [
     DurationUnit.Hour,
     DurationUnit.Day,
 ];
+const ColumnsCount: number = 5;
 
 export class SortingOptions {
     isCustomSortingNeeded: boolean;
@@ -230,6 +235,7 @@ export class Gantt implements IVisual {
     private static TaskLabels: ClassAndSelector = createClassAndSelector("task-labels");
     private static TaskLines: ClassAndSelector = createClassAndSelector("task-lines");
     private static TaskLinesRect: ClassAndSelector = createClassAndSelector("task-lines-rect");
+    private static TaskColumnRect: ClassAndSelector = createClassAndSelector("task-column-rect");
     private static TaskTopLine: ClassAndSelector = createClassAndSelector("task-top-line");
     private static CollapseAll: ClassAndSelector = createClassAndSelector("collapse-all");
     private static CollapseAllArrow: ClassAndSelector = createClassAndSelector("collapse-all-arrow");
@@ -255,6 +261,11 @@ export class Gantt implements IVisual {
 
     private static MilestonesPropertyIdentifier: DataViewObjectPropertyIdentifier = {
         objectName: "milestones",
+        propertyName: "fill"
+    };
+
+    private static ColumnsPropertyIdentifier: DataViewObjectPropertyIdentifier = {
+        objectName: "columns",
         propertyName: "fill"
     };
 
@@ -360,6 +371,7 @@ export class Gantt implements IVisual {
     private taskGroup: Selection<any>;
     private lineGroup: Selection<any>;
     private lineGroupWrapper: Selection<any>;
+    private lineGroupColumnWrapper: Selection<any>[] = [];
     private clearCatcher: Selection<any>;
     private ganttDiv: Selection<any>;
     private behavior: Behavior;
@@ -462,6 +474,18 @@ export class Gantt implements IVisual {
             .attr("fill", axisBackgroundColor)
             .attr("y", this.margin.top);
 
+
+        for (let i = 0; i < ColumnsCount; i++) {
+            const colWrapper = this.lineGroup
+            .append("rect")
+            .classed(Gantt.TaskColumnRect.className, true)
+            .attr("height", "100%")
+            .attr("width", "0")
+            .attr("fill", axisBackgroundColor)
+            .attr("y", this.margin.top);
+            this.lineGroupColumnWrapper.push(colWrapper);
+        }
+
         this.lineGroup
             .append("rect")
             .classed(Gantt.TaskTopLine.className, true)
@@ -487,7 +511,7 @@ export class Gantt implements IVisual {
         this.ganttDiv.on("scroll", (event) => {
             if (this.viewModel) {
                 const taskLabelsWidth: number = this.viewModel.settings.taskLabelsCardSettings.show.value
-                    ? this.viewModel.settings.taskLabelsCardSettings.width.value
+                    ? this.viewModel.settings.taskLabelsCardSettings.width.value * (this.viewModel.columnsData.columns.length + 1)
                     : 0;
 
                 const scrollTop: number = <number>event.target.scrollTop;
@@ -755,6 +779,75 @@ export class Gantt implements IVisual {
             startDateFormatter: ValueFormatter.create({ format: dateFormat, cultureSelector }),
             completionFormatter: ValueFormatter.create({ format: PercentFormat, value: 1, allowFormatBeautification: true })
         };
+    }
+    /**
+     * Creates a ColumnsData object from the provided dataView, host, settings, and localizationManager.
+     * 
+     * @param dataView - The dataView object containing the data to be processed.
+     * @param host - The IVisualHost object for visual interactions.
+     * @param settings - The GanttChartSettingsModel object containing the visual's settings.
+     * @param localizationManager - The ILocalizationManager object for localization.
+     * 
+     * @returns A ColumnsData object containing the processed data.
+     */
+    public static createColumns(dataView: DataView, host: IVisualHost, colorPalette: IColorPalette, settings: GanttChartSettingsModel, taskTypes: TaskTypes, useDefaultColor: boolean): ColumnsData {
+        const columnsData: ColumnsData = {
+            columns: []
+        };
+
+        if (!dataView.categorical || !dataView.categorical.categories) {
+            return columnsData;
+        }
+        const colorHelper = new ColorHelper(colorPalette, Gantt.ColumnsPropertyIdentifier);
+      
+        let index = 0;
+        dataView.categorical.categories.forEach(category => {
+            console.log("category: ", category);
+            console.log("category roles: ", category.source.roles);
+
+            if (GanttRole.Columns in category.source.roles) {
+                console.log("category roles Column");
+                const typeName = category.source.displayName;
+                //const dataViewMetadataColumn: DataViewMetadataColumn = dataView.metadata.columns[index];
+                //const category = dataView?.categorical?.categories ? dataView.categorical.categories.find(category => category.source.queryName === dataViewMetadataColumn.queryName) : null;
+                const values = category?.values ? category.values : <DataViewValueColumns>[];
+                const taskType: TaskTypeMetadata = taskTypes.types.find(type => type.name === typeName);
+
+                let color: string = settings.taskConfigCardSettings.fill.value.value;
+                if (!useDefaultColor && !colorHelper.isHighContrast) {
+                    color = colorHelper.getColorForMeasure(taskType?.columnGroup?.objects, typeName);
+                }
+
+                //to be sure add Column only once, because columns can be defined on more settings, than they are there more times
+                if (!columnsData.columns.find(column => column.name === typeName)) {            
+                    const columnData: ColumnData = {
+                        name: typeName,
+                        color: color,
+                        valuePoints: [],                        
+                    };
+
+                    const columns: { value: PrimitiveValue, index: number }[] = [];
+                    category.values.forEach((value: PrimitiveValue, index: number) => columns.push({ value, index }));
+
+                    columns.forEach((columnValue) => {
+                        const selectionBuilder: ISelectionIdBuilder = host
+                            .createSelectionIdBuilder()
+                            .withCategory(category, columnValue.index);
+        
+                        const columnDataPoint: ColumnDataPoint = {
+                            name: columnValue.value as string,
+                            identity: selectionBuilder.createSelectionId(),
+                        };
+                        columnData.valuePoints.push(columnDataPoint);
+                    });
+        
+                    columnsData.columns.push(columnData);    
+                }                
+            }
+            index++;
+        });
+
+        return columnsData;
     }
 
     private static createLegend(
@@ -1053,6 +1146,7 @@ export class Gantt implements IVisual {
         }
 
         const task: Task = {
+            id: index,
             color,
             completion,
             resource,
@@ -1207,6 +1301,7 @@ export class Gantt implements IVisual {
             addedParents.push(taskParentName);
 
             const parentTask: Task = {
+                id: 0,
                 index: 0,
                 name: taskParentName,
                 start: null,
@@ -1472,7 +1567,7 @@ export class Gantt implements IVisual {
         if (dataView?.categorical?.categories?.length === 0 || !Gantt.isChartHasTask(dataView)) {
             return null;
         }
-
+        
         const settings: GanttChartSettingsModel = this.parseSettings(dataView, colorHelper);
 
         const taskTypes: TaskTypes = Gantt.getAllTasksTypes(dataView);
@@ -1488,6 +1583,7 @@ export class Gantt implements IVisual {
 
         const legendData: LegendData = Gantt.createLegend(host, colors, settings, taskTypes, !isDurationFilled && !isEndDateFilled);
         const milestonesData: MilestoneData = Gantt.createMilestones(dataView, host);
+        const columnsData: ColumnsData = Gantt.createColumns(dataView, host, colors, settings, taskTypes, false);
 
         const taskColor: string = (legendData.dataPoints?.length <= 1) || !isDurationFilled
             ? settings.taskConfigCardSettings.fill.value.value
@@ -1506,6 +1602,7 @@ export class Gantt implements IVisual {
             tasks,
             legendData,
             milestonesData,
+            columnsData,
             isDurationFilled,
             isEndDateFilled: isEndDateFilled,
             isParentFilled,
@@ -1958,6 +2055,7 @@ export class Gantt implements IVisual {
                     let parent = null;
                     groupedTasks[key].forEach(t => parent = t.parent ? t.parent : parent);
                     const groupRecord: GroupedTask = {
+                        id: groupedTasks[key][0].id,
                         name,
                         tasks: groupedTasks[key],
                         parent: parent,
@@ -2091,6 +2189,13 @@ export class Gantt implements IVisual {
         return level;
     }
 
+    private getColumnValueByTask(task : GroupedTask, index: number): string {
+        console.log("getColumnValueByTask task: ", task);
+        console.log("index: ", index );
+        console.log("valuePoints: ", this.viewModel.columnsData.columns[index].valuePoints );
+        return this.viewModel.columnsData.columns[index].valuePoints[task.id] ? this.viewModel.columnsData.columns[index].valuePoints[task.id].name : ""
+    }
+
     /**
     * Update task labels and add its tooltips
     * @param tasks All tasks array
@@ -2163,6 +2268,47 @@ export class Gantt implements IVisual {
                 .append("title")
                 .text((task: GroupedTask) => task.name);
 
+            //Fill column Data    
+            let xPos = taskLabelsWidth;                  
+            for (let index = 0; index < Math.max(this.viewModel.columnsData.columns.length, this.lineGroupColumnWrapper.length); index++) {
+
+                const colWrapper = this.lineGroupColumnWrapper[index];
+                if (index < this.viewModel.columnsData.columns.length) {                
+                    colWrapper
+                        .attr("width", taskLabelsWidth)
+                        .attr("fill", isHighContrast ? categoriesAreaBackgroundColor : Gantt.DefaultValues.TaskCategoryLabelsRectColor)
+                        .attr("stroke", this.colorHelper.getHighContrastColor("foreground", Gantt.DefaultValues.TaskLineColor))
+                        .attr("stroke-width", 1)
+                        .attr("x", xPos);
+                        
+                    const clickableAreaColumn = axisLabelGroup
+                        .append("g")
+                        .classed(Gantt.ClickableArea.className, true)
+                        .merge(axisLabelGroup);
+        
+                    clickableAreaColumn
+                        .append("text")
+                        
+                        .attr("x", (task: GroupedTask) => (xPos + Gantt.TaskLineCoordinateX))
+                        .attr("class", (task: GroupedTask) => task.tasks[0].children ? "parent" : task.tasks[0].parent ? "child" : "normal-node")
+                        .attr("y", (task: GroupedTask) => (task.index + 0.5) * this.getResourceLabelTopMargin())
+                        .attr("fill", taskLabelsColor)
+                        .attr("stroke-width", Gantt.AxisLabelStrokeWidth)
+                        .style("font-size", PixelConverter.fromPoint(taskLabelsFontSize))
+                        .text((task: GroupedTask) => this.getColumnValueByTask(task, index))
+                        .call(AxisHelper.LabelLayoutStrategy.clip, width - Gantt.AxisLabelClip, textMeasurementService.svgEllipsis)
+                        .append("title")
+                        .text((task: GroupedTask) => task.name);
+                
+
+                    xPos += taskLabelsWidth;
+                } else {
+                    colWrapper
+                        .attr("width", 0)
+                        .attr("fill", "transparent");                
+                }                     
+            }
+    
             //Button Expand/Collapse    
             const buttonSelection = clickableArea
                 .filter((task: GroupedTask) => task.tasks[0].children && !!task.tasks[0].children.length)
@@ -2226,6 +2372,12 @@ export class Gantt implements IVisual {
             this.lineGroupWrapper
                 .attr("width", 0)
                 .attr("fill", "transparent");
+
+            this.lineGroupColumnWrapper.forEach(colWrapper => {
+                colWrapper
+                    .attr("width", 0)
+                    .attr("fill", "transparent");                
+            });
 
             this.lineGroup
                 .selectAll(Gantt.Label.selectorName)
@@ -3232,7 +3384,7 @@ export class Gantt implements IVisual {
     private updateElementsPositions(margin: IMargin): void {
         const settings: GanttChartSettingsModel = this.viewModel.settings;
         const taskLabelsWidth: number = settings.taskLabelsCardSettings.show.value
-            ? settings.taskLabelsCardSettings.width.value
+            ? settings.taskLabelsCardSettings.width.value * (this.viewModel.columnsData.columns.length + 1)
             : 0;
 
         let translateXValue: number = taskLabelsWidth + margin.left + Gantt.SubtasksLeftMargin;
