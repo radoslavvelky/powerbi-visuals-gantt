@@ -92,6 +92,7 @@ export interface Task extends SelectableDataPoint {
 
 export interface GroupedTask {
     id: number;
+    level: number;
     index: number;
     name: string;
     tasks: Task[];

@@ -27,7 +27,7 @@
 import "./../style/gantt.less";
 
 import {select as d3Select, Selection as d3Selection} from "d3-selection";
-import {ScaleTime as timeScale} from "d3-scale";
+import {ScaleTime as timeScale, scaleOrdinal} from "d3-scale";
 import {
     timeDay as d3TimeDay,
     timeHour as d3TimeHour,
@@ -73,7 +73,7 @@ import {
 } from "powerbi-visuals-utils-tooltiputils";
 
 // powerbi.extensibility.utils.color
-import {ColorHelper} from "powerbi-visuals-utils-colorutils";
+import {ColorHelper, shadeColor} from "powerbi-visuals-utils-colorutils";
 
 // powerbi.extensibility.utils.chart.legend
 import {
@@ -220,6 +220,7 @@ export class Gantt implements IVisual {
     private static Chart: ClassAndSelector = createClassAndSelector("chart");
     private static ChartLine: ClassAndSelector = createClassAndSelector("chart-line");
     private static Body: ClassAndSelector = createClassAndSelector("gantt-body");
+    private static HeaderGroup: ClassAndSelector = createClassAndSelector("header-group");
     private static AxisGroup: ClassAndSelector = createClassAndSelector("axis");
     private static DateTypeGroup: ClassAndSelector = createClassAndSelector("date-type");
     private static Domain: ClassAndSelector = createClassAndSelector("domain");
@@ -326,7 +327,7 @@ export class Gantt implements IVisual {
     private static BarHeightMargin: number = 5;
     private static ChartLineHeightDivider: number = 4;
     private static ResourceWidthPadding: number = 10;
-    private static TaskLabelsMarginTop: number = 15;
+    private static TaskLabelsMarginTop: number = 40;     //TODO origin =15
     private static CompletionDefault: number = null;
     private static CompletionMax: number = 1;
     private static CompletionMin: number = 0;
@@ -340,14 +341,16 @@ export class Gantt implements IVisual {
     private static SubtasksLeftMargin: number = 10;
     private static NotCompletedTaskOpacity: number = .5;
     private static TaskOpacity: number = 1;
+    public static DateTypeBtnWidth: number = 65;
     public static RectRound: number = 7;
+    private static HeaderHeight: number = 60;
 
     private static TimeScale: timeScale<any, any>;
     private xAxisProperties: IAxisProperties;
 
     private static get DefaultMargin(): IMargin {
         return {
-            top: 50,
+            top: 20,
             right: 40,
             bottom: 40,
             left: 10
@@ -366,6 +369,10 @@ export class Gantt implements IVisual {
     private viewModel: GanttViewModel;
     private collapseAllGroup: Selection<any>;
     private dateTypeGroup: Selection<any>;
+    private dateTypeButtonsRect: Selection<any>[] = [];
+    private dateTypeButtons: Selection<any>[] = [];
+    private headerGroup: Selection<any>;
+    private headerGroupRect: Selection<any>;
     private axisGroup: Selection<any>;
     private chartGroup: Selection<any>;
     private taskGroup: Selection<any>;
@@ -439,17 +446,6 @@ export class Gantt implements IVisual {
             .append("g")
             .classed(Gantt.Tasks.className, true);
 
-        // create axis container
-        this.axisGroup = this.ganttSvg
-            .append("g")
-            .classed(Gantt.AxisGroup.className, true);
-        this.axisGroup
-            .append("rect")
-            .attr("width", "100%")
-            .attr("y", "-20")
-            .attr("height", "40px")
-            .attr("fill", axisBackgroundColor);
-
         // create task lines container
         this.lineGroup = this.ganttSvg
             .append("g")
@@ -461,7 +457,7 @@ export class Gantt implements IVisual {
             .attr("height", "100%")
             .attr("width", "0")
             .attr("fill", axisBackgroundColor)
-            .attr("y", this.margin.top);
+            .attr("y", Gantt.HeaderHeight + this.margin.top);
 
 
         for (let i = 0; i < ColumnsCount; i++) {
@@ -471,7 +467,7 @@ export class Gantt implements IVisual {
             .attr("height", "100%")
             .attr("width", "0")
             .attr("fill", axisBackgroundColor)
-            .attr("y", this.margin.top);
+            .attr("y", Gantt.HeaderHeight + this.margin.top);
             this.lineGroupColumnWrapper.push(colWrapper);
         }
 
@@ -480,23 +476,81 @@ export class Gantt implements IVisual {
             .classed(Gantt.TaskTopLine.className, true)
             .attr("width", "100%")
             .attr("height", 1)
-            .attr("y", this.margin.top)
+            .attr("y", Gantt.HeaderHeight + this.margin.top)
             .attr("fill", this.colorHelper.getHighContrastColor("foreground", Gantt.DefaultValues.TaskLineColor));
 
         this.collapseAllGroup = this.lineGroup
             .append("g")
             .classed(Gantt.CollapseAll.className, true);
 
+        //create header container    
+        this.headerGroup = this.ganttSvg
+            .append("g")
+            .classed(Gantt.HeaderGroup.className, true);
+        this.headerGroupRect = this.headerGroup
+            .append("rect")
+            .attr("width", "100%")
+            .attr("y", "0")
+            .attr("height", Gantt.HeaderHeight)
+            .attr("fill", axisBackgroundColor);
+
+        // create axis container
+        this.axisGroup = this.headerGroup
+            .append("g")
+            .classed(Gantt.AxisGroup.className, true);
+        this.axisGroup
+            .append("rect")
+            .attr("width", "100%")
+            .attr("y", "-20")
+            .attr("height", "40px")
+            .attr("fill", axisBackgroundColor);
+
         // create dateType container
-        this.dateTypeGroup = this.lineGroup
+        this.dateTypeGroup = this.headerGroup
             .append("g")
             .classed(Gantt.DateTypeGroup.className, true);
-        this.dateTypeGroup
+
+        const dateTypeRect1 = this.dateTypeGroup
             .append("rect")
-            .attr("width", "100px")
-            .attr("y", "-8")
-            .attr("height", "40px")
-            .attr("fill", axisBackgroundColor);            
+            .attr("data-type", DateType.Day)
+            .attr("fill", axisBackgroundColor);
+        this.dateTypeButtonsRect.push(dateTypeRect1);    
+        const dateTypeRect2 = this.dateTypeGroup
+            .append("rect")
+            .attr("data-type", DateType.Week)
+            .attr("fill", axisBackgroundColor);
+        this.dateTypeButtonsRect.push(dateTypeRect2);    
+        const dateTypeRect3 = this.dateTypeGroup
+            .append("rect")
+            .attr("data-type", DateType.Month)
+            .attr("fill", axisBackgroundColor);
+        this.dateTypeButtonsRect.push(dateTypeRect3);    
+        const dateTypeRect4 = this.dateTypeGroup
+            .append("rect")
+            .attr("data-type", DateType.Year)
+            .attr("fill", axisBackgroundColor);
+        this.dateTypeButtonsRect.push(dateTypeRect4);    
+        
+        const dateBtn1 = this.dateTypeGroup
+            .append("text")
+            .attr("data-type", DateType.Day)
+            .text(DateType.Day);
+        this.dateTypeButtons.push(dateBtn1);                            
+        const dateBtn2 = this.dateTypeGroup
+            .append("text")
+            .attr("data-type", DateType.Week)
+            .text(DateType.Week);
+        this.dateTypeButtons.push(dateBtn2);                            
+        const dateBtn3 = this.dateTypeGroup
+            .append("text")
+            .attr("data-type", DateType.Month)
+            .text(DateType.Month);
+        this.dateTypeButtons.push(dateBtn3);                            
+        const dateBtn4 = this.dateTypeGroup
+            .append("text")
+            .attr("data-type", DateType.Year)
+            .text(DateType.Year);
+        this.dateTypeButtons.push(dateBtn4);                            
 
         // create legend container
         const interactiveBehavior: IInteractiveBehavior = this.colorHelper.isHighContrast ? new OpacityLegendBehavior() : null;
@@ -516,35 +570,33 @@ export class Gantt implements IVisual {
 
                 const scrollTop: number = <number>event.target.scrollTop;
                 const scrollLeft: number = <number>event.target.scrollLeft;
+                const viewClientWidth: number = <number>event.target.clientWidth - ((this.dateTypeButtonsRect.length + 1) * Gantt.DateTypeBtnWidth);
 
                 this.axisGroup
                     .attr("transform", SVGManipulations.translate(taskLabelsWidth + this.margin.left + Gantt.SubtasksLeftMargin, Gantt.TaskLabelsMarginTop + scrollTop));
                 this.lineGroup
                     .attr("transform", SVGManipulations.translate(scrollLeft, 0))
                     .attr("height", 20);
+
+                this.headerGroupRect
+                    .attr("transform", SVGManipulations.translate(0, scrollTop));                 
+                this.dateTypeGroup    
+                    .attr("transform", SVGManipulations.translate(viewClientWidth + scrollLeft, scrollTop));
             }
         }, false);
 
-        this.dateTypeGroup.on('click', (d, i) => {
-            console.log(`Clicked position this.currentDateType: `, this.currentDateType);
-            if (this.currentDateType === DateType.Month) {
-                this.currentDateType = DateType.Quarter;
-            } else if (this.currentDateType === DateType.Quarter) {
-                this.currentDateType = DateType.Year;
-            } else if (this.currentDateType === DateType.Year) {
-                this.currentDateType = DateType.Hour;
-            } else if (this.currentDateType === DateType.Hour) {
-                this.currentDateType = DateType.Day;
-            } else if (this.currentDateType === DateType.Day) {
-                this.currentDateType = DateType.Week;
-            } else if (this.currentDateType === DateType.Week) {
-                this.currentDateType = DateType.Month;
-            } else {
-                this.currentDateType = DateType.Month;
-            }  
-            this.render();          
-          })
-
+        this.dateTypeButtonsRect.forEach(dateTypeBtnRect => {
+            dateTypeBtnRect.on("click", () => {
+                this.currentDateType = <DateType>dateTypeBtnRect.attr("data-type");
+                this.render();
+            });                
+        });
+        this.dateTypeButtons.forEach(dateTypeBtn => {
+            dateTypeBtn.on("click", () => {
+                this.currentDateType = <DateType>dateTypeBtn.attr("data-type");
+                this.render();
+            });                
+        });
     }
 
     /**
@@ -913,7 +965,7 @@ export class Gantt implements IVisual {
                 return MillisecondsInADay;
         }
     }
-
+        
     private static getUniqueMilestones(milestonesDataPoints: MilestoneDataPoint[]) {
         const milestonesWithoutDuplicates: {
             [name: string]: MilestoneDataPoint
@@ -1813,7 +1865,7 @@ export class Gantt implements IVisual {
 
         this.collapsedTasks = JSON.parse(settings.collapsedTasksCardSettings.list.value);
         const groupTasks = this.viewModel.settings.generalCardSettings.groupTasks.value;
-        const groupedTasks: GroupedTask[] = Gantt.getGroupTasks(tasks, groupTasks, this.collapsedTasks);
+        const groupedTasks: GroupedTask[] = Gantt.getGroupTasks(tasks, groupTasks, this.collapsedTasks, this.viewModel.settings.taskConfigCardSettings.fill.value.value);
         // do something with task ids
         this.updateCommonTasks(groupedTasks);
         this.updateCommonMilestones(groupedTasks);
@@ -1849,7 +1901,6 @@ export class Gantt implements IVisual {
             Gantt.TimeScale = <timeScale<Date, Date>>xAxisProperties.scale;
 
             this.renderAxis(xAxisProperties);
-            //this.renderDateTypeScroll();
         }
 
         axisLength = this.scaleAxisLength(axisLength);
@@ -2025,7 +2076,7 @@ export class Gantt implements IVisual {
             widthBeforeConversion += Gantt.DefaultValues.ResourceWidth / 2;
         }
 
-        const height = PixelConverter.toString(groupedTasks.length * (settings.taskConfigCardSettings.height.value || DefaultChartLineHeight) + this.margin.top + fullResourceLabelMargin);
+        const height = PixelConverter.toString(groupedTasks.length * (settings.taskConfigCardSettings.height.value || DefaultChartLineHeight) + Gantt.HeaderHeight + this.margin.top + fullResourceLabelMargin);
         const width = PixelConverter.toString(widthBeforeConversion);
 
         this.ganttSvg
@@ -2033,7 +2084,7 @@ export class Gantt implements IVisual {
             .attr("width", width);
     }
 
-    private static getGroupTasks(tasks: Task[], groupTasks: boolean, collapsedTasks: string[]): GroupedTask[] {
+    private static getGroupTasks(tasks: Task[], groupTasks: boolean, collapsedTasks: string[], taskColor: string): GroupedTask[] {
         console.log("getGroupTasks tasks: ", tasks);
         console.log("getGroupTasks groupTasks: ", groupTasks);
         if (groupTasks) {
@@ -2059,6 +2110,7 @@ export class Gantt implements IVisual {
                     const groupRecord: GroupedTask = {
                         id: groupedTasks[key][0].id,
                         name,
+                        level: -1,
                         tasks: groupedTasks[key],
                         parent: parent,
                         index: index
@@ -2070,6 +2122,8 @@ export class Gantt implements IVisual {
                 }
             });
     
+            this.assignLevelAndColorsToGroupTasks(result, taskColor); //Gantt.DefaultValues.TaskColor
+
             result.sort((a, b) => {
                     const parentsA: GroupedTask[] = [];
                     const parentsB: GroupedTask[] = [];
@@ -2117,16 +2171,14 @@ export class Gantt implements IVisual {
             parent: null
         });
     }
+    static assignLevelAndColorsToGroupTasks(groupedTasks: GroupedTask[], baseColor: string) {
+        groupedTasks.forEach((groupedTask: GroupedTask) => {
+            groupedTask.level =  -1 ? this.getHierarchyLevel(groupedTask, groupedTasks) : groupedTask.level;
 
-    private renderDateType() {
-        const showDateType: boolean = this.viewModel.settings.dateTypeCardSettings.showDateSwitch.value; 
-        const dateType: DateType = this.currentDateType;
-
-        if (showDateType) { 
-            this.dateTypeGroup
-            .transition();
-
-        }
+            groupedTask.tasks.forEach((task: Task) => {
+                task.color = shadeColor(baseColor, 0.1*(groupedTask.level-1)); 
+            });
+        });
     }
 
     private renderAxis(xAxisProperties: IAxisProperties, duration: number = Gantt.DefaultDuration): void {
@@ -2175,7 +2227,8 @@ export class Gantt implements IVisual {
         return defaultColor;
     }
 
-    private getHierarchyLevel(task : GroupedTask, tasks: GroupedTask[]): number {
+    
+    static getHierarchyLevel(task : GroupedTask, tasks: GroupedTask[]): number {
         let level = 1;
         if (!task.parent) {
             return level;
@@ -2241,7 +2294,7 @@ export class Gantt implements IVisual {
                 .merge(axisLabel);
 
             axisLabelGroup.classed(Gantt.Label.className, true)
-                .attr("transform", (task: GroupedTask) => SVGManipulations.translate(0, this.margin.top + this.getTaskLabelCoordinateY(task.index)));
+                .attr("transform", (task: GroupedTask) => SVGManipulations.translate(0, Gantt.HeaderHeight + this.margin.top + this.getTaskLabelCoordinateY(task.index)));
 
             const clickableArea = axisLabelGroup
                 .append("g")
@@ -2253,7 +2306,7 @@ export class Gantt implements IVisual {
                 .append("text")
                 
                 .attr("x", (task: GroupedTask) => (Gantt.TaskLineCoordinateX +                    
-                         this.getHierarchyLevel(task, tasks) * this.parentLabelOffset))
+                    task.level * this.parentLabelOffset))
                 /*        
                 .attr("x", (task: GroupedTask) => (Gantt.TaskLineCoordinateX +
                     (task.tasks.every((task: Task) => !!task.parent)
@@ -2388,25 +2441,51 @@ export class Gantt implements IVisual {
     }
 
     private updateDateTypeGroup() {
-        this.dateTypeGroup
-            .selectAll("text")
-            .remove();
+        //this.dateTypeGroup
+        //    .selectAll("text")
+        //    .remove();
 
         this.collapseAllGroup
                 .append("rect")
                 .attr("width", this.viewModel.settings.taskLabelsCardSettings.width.value)
-                .attr("height", 2 * Gantt.TaskLabelsMarginTop)
+                .attr("height", "32px")
+                //.attr("height", 2 * Gantt.TaskLabelsMarginTop)
                 //.attr("fill", categoriesAreaBackgroundColor);
-            
-        const text = this.currentDateType;
 
+        const backgroundColor: string = this.colorHelper.getThemeColor();
+        const viewClientWidth: number = (this.ganttDiv.node() as SVGSVGElement).clientWidth - ((this.dateTypeButtonsRect.length + 1) * Gantt.DateTypeBtnWidth);
+        const translateXValue: number = viewClientWidth + (this.ganttDiv.node() as SVGSVGElement).scrollLeft;
+        const translateYValue: number = (this.ganttDiv.node() as SVGSVGElement).scrollTop;
+                
         this.dateTypeGroup
-            .append("text")
-            .attr("x", this.secondExpandAllIconOffset + this.groupLabelSize)
-            .attr("y", "20px")
-            .attr("font-size", "12px")
-            .attr("fill", this.viewModel.settings.dateTypeCardSettings.axisColor.value.value)
-            .text(text);
+                .attr("fill", backgroundColor)
+                .attr("transform", SVGManipulations.translate(translateXValue, translateYValue));
+        
+
+        let xPos = this.secondExpandAllIconOffset + this.groupLabelSize;
+        this.dateTypeButtonsRect.forEach(dateTypeBtnRect => {
+            dateTypeBtnRect
+                .attr("y", "0px")
+                .attr("x", xPos)
+                .attr("width", Gantt.DateTypeBtnWidth)
+                .attr("height", "30px")
+                .attr("stroke", this.colorHelper.getHighContrastColor("foreground", Gantt.DefaultValues.TaskLineColor))
+                .attr("fill", dateTypeBtnRect.attr("data-type") === this.currentDateType ? this.colorHelper.getHighContrastColor("foreground", Gantt.DefaultValues.TaskLineColor) : backgroundColor)
+                .attr("stroke-width", "1");
+
+            xPos = xPos + Gantt.DateTypeBtnWidth;    
+        });
+
+        xPos = this.secondExpandAllIconOffset + this.groupLabelSize + 10;
+        this.dateTypeButtons.forEach(dateTypeBtn => {
+            dateTypeBtn
+                .attr("y", "20px")
+                .attr("x", xPos)
+                .attr("font-size", "12px")
+                .attr("fill", this.viewModel.settings.dateTypeCardSettings.axisColor.value.value);
+
+            xPos = xPos + Gantt.DateTypeBtnWidth;
+        });
     }
 
     private updateCollapseAllGroup(categoriesAreaBackgroundColor: string, taskLabelShow: boolean) {
@@ -2430,7 +2509,8 @@ export class Gantt implements IVisual {
             this.collapseAllGroup
                 .append("rect")
                 .attr("width", categoryLabelsWidth)
-                .attr("height", 2 * Gantt.TaskLabelsMarginTop)
+                .attr("height", "32px")
+                //.attr("height", 2 * Gantt.TaskLabelsMarginTop)
                 .attr("fill", categoriesAreaBackgroundColor);
 
             const expandCollapseButton = this.collapseAllGroup
@@ -3391,7 +3471,7 @@ export class Gantt implements IVisual {
 
         let translateXValue: number = taskLabelsWidth + margin.left + Gantt.SubtasksLeftMargin;
         this.chartGroup
-            .attr("transform", SVGManipulations.translate(translateXValue, margin.top));
+            .attr("transform", SVGManipulations.translate(translateXValue, Gantt.HeaderHeight + margin.top));
 
         const translateYValue: number = Gantt.TaskLabelsMarginTop + (this.ganttDiv.node() as SVGSVGElement).scrollTop;
         this.axisGroup
@@ -3401,7 +3481,8 @@ export class Gantt implements IVisual {
         this.lineGroup
             .attr("transform", SVGManipulations.translate(translateXValue, 0));
         this.collapseAllGroup
-            .attr("transform", SVGManipulations.translate(0, margin.top / 4 + Gantt.AxisTopMargin));
+            .attr("transform", SVGManipulations.translate(0, Gantt.HeaderHeight - (Gantt.HeaderHeight / 4)));
+            //.attr("transform", SVGManipulations.translate(0, (margin.top / 4) + Gantt.AxisTopMargin));
     }
 
     private getMilestoneLineLength(numOfTasks: number): number {
