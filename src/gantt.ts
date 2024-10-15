@@ -462,12 +462,12 @@ export class Gantt implements IVisual {
 
         for (let i = 0; i < ColumnsCount; i++) {
             const colWrapper = this.lineGroup
-            .append("rect")
-            .classed(Gantt.TaskColumnRect.className, true)
-            .attr("height", "100%")
-            .attr("width", "0")
-            .attr("fill", axisBackgroundColor)
-            .attr("y", Gantt.HeaderHeight + this.margin.top);
+                .append("rect")
+                .classed(Gantt.TaskColumnRect.className, true)
+                .attr("height", "100%")
+                .attr("width", "0")
+                .attr("fill", axisBackgroundColor)
+                .attr("y", Gantt.HeaderHeight + this.margin.top);
             this.lineGroupColumnWrapper.push(colWrapper);
         }
 
@@ -516,7 +516,9 @@ export class Gantt implements IVisual {
                 const dateTypeRect = this.dateTypeGroup
                     .append("rect")
                     .attr("data-type", dateType)
-                    .attr("fill", axisBackgroundColor);
+                    .attr("fill", axisBackgroundColor)
+                    .attr("rx", Gantt.RectRound)  // Add this line to round the corners
+                    .attr("ry", Gantt.RectRound);        
                 this.dateTypeButtonsRect.push(dateTypeRect);
         
                 const dateBtn = this.dateTypeGroup
@@ -2478,7 +2480,7 @@ export class Gantt implements IVisual {
                     .attr("stroke", this.colorHelper.getHighContrastColor("foreground", Gantt.DefaultValues.TaskLineColor))
                     .attr("fill", dateTypeBtnRect.attr("data-type") === this.currentDateType ? this.colorHelper.getHighContrastColor("foreground", Gantt.DefaultValues.TaskLineColor) : backgroundColor)
                     .attr("stroke-width", "1");
-                xPos = xPos + Gantt.DateTypeBtnWidth;  
+                xPos = xPos + Gantt.DateTypeBtnWidth + 7;  
                 visibleCount++;  
             } else {
                 dateTypeBtnRect.attr("width", 0);
@@ -2494,7 +2496,7 @@ export class Gantt implements IVisual {
                     .attr("font-size", "12px")
                     .attr("fill", this.viewModel.settings.dateTypeCardSettings.axisColor.value.value);
 
-                xPos = xPos + Gantt.DateTypeBtnWidth;
+                xPos = xPos + Gantt.DateTypeBtnWidth + 7;
             } else {
                 dateTypeBtn.attr("width", 0);
             }    
