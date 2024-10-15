@@ -466,6 +466,54 @@ export class DateTypeCardSettings extends Card {
         value: false
     });
 
+    showDateSecond = new formattingSettings.ToggleSwitch({
+        name: "showDateSecond",
+        displayNameKey: "Visual_DateType_showDateSecond",
+        value: false
+    });
+
+    showDateMinute = new formattingSettings.ToggleSwitch({
+        name: "showDateMinute",
+        displayNameKey: "Visual_DateType_showDateMinute",
+        value: false
+    });
+
+    showDateHour = new formattingSettings.ToggleSwitch({
+        name: "showDateHour",
+        displayNameKey: "Visual_DateType_showDateHour",
+        value: false
+    });
+
+    showDateDay = new formattingSettings.ToggleSwitch({
+        name: "showDateDay",
+        displayNameKey: "Visual_DateType_showDateDay",
+        value: true
+    });
+
+    showDateWeek = new formattingSettings.ToggleSwitch({
+        name: "showDateWeek",
+        displayNameKey: "Visual_DateType_showDateWeek",
+        value: true
+    });
+
+    showDateMonth = new formattingSettings.ToggleSwitch({
+        name: "showDateMonth",
+        displayNameKey: "Visual_DateType_showDateMonth",
+        value: true
+    });
+
+    showDateQuarter = new formattingSettings.ToggleSwitch({
+        name: "showDateQuarter",
+        displayNameKey: "Visual_DateType_showDateQuarter",
+        value: false
+    });
+
+    showDateYear = new formattingSettings.ToggleSwitch({
+        name: "showDateYear",
+        displayNameKey: "Visual_DateType_showDateYear",
+        value: true
+    });
+    
     type = new formattingSettings.ItemDropdown({
         name: "type",
         displayNameKey: "Visual_Type",
@@ -493,7 +541,7 @@ export class DateTypeCardSettings extends Card {
 
     name: string = "dateType";
     displayNameKey: string = "Visual_DateType";
-    slices = [this.showDateSwitch, this.type, this.todayColor, this.axisColor, this.axisTextColor];
+    slices = [this.showDateSwitch, this.type, this.todayColor, this.axisColor, this.axisTextColor, this.showDateSecond, this.showDateMinute, this.showDateHour, this.showDateDay, this.showDateWeek, this.showDateMonth, this.showDateQuarter, this.showDateYear];
 }
 
 export class GanttChartSettingsModel extends Model { 

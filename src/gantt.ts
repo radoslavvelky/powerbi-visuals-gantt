@@ -510,47 +510,22 @@ export class Gantt implements IVisual {
             .append("g")
             .classed(Gantt.DateTypeGroup.className, true);
 
-        const dateTypeRect1 = this.dateTypeGroup
-            .append("rect")
-            .attr("data-type", DateType.Day)
-            .attr("fill", axisBackgroundColor);
-        this.dateTypeButtonsRect.push(dateTypeRect1);    
-        const dateTypeRect2 = this.dateTypeGroup
-            .append("rect")
-            .attr("data-type", DateType.Week)
-            .attr("fill", axisBackgroundColor);
-        this.dateTypeButtonsRect.push(dateTypeRect2);    
-        const dateTypeRect3 = this.dateTypeGroup
-            .append("rect")
-            .attr("data-type", DateType.Month)
-            .attr("fill", axisBackgroundColor);
-        this.dateTypeButtonsRect.push(dateTypeRect3);    
-        const dateTypeRect4 = this.dateTypeGroup
-            .append("rect")
-            .attr("data-type", DateType.Year)
-            .attr("fill", axisBackgroundColor);
-        this.dateTypeButtonsRect.push(dateTypeRect4);    
+        //iterate DateType object        
+        for (const dateType in DateType) {
+            if (isNaN(Number(dateType))) {
+                const dateTypeRect = this.dateTypeGroup
+                    .append("rect")
+                    .attr("data-type", dateType)
+                    .attr("fill", axisBackgroundColor);
+                this.dateTypeButtonsRect.push(dateTypeRect);
         
-        const dateBtn1 = this.dateTypeGroup
-            .append("text")
-            .attr("data-type", DateType.Day)
-            .text(DateType.Day);
-        this.dateTypeButtons.push(dateBtn1);                            
-        const dateBtn2 = this.dateTypeGroup
-            .append("text")
-            .attr("data-type", DateType.Week)
-            .text(DateType.Week);
-        this.dateTypeButtons.push(dateBtn2);                            
-        const dateBtn3 = this.dateTypeGroup
-            .append("text")
-            .attr("data-type", DateType.Month)
-            .text(DateType.Month);
-        this.dateTypeButtons.push(dateBtn3);                            
-        const dateBtn4 = this.dateTypeGroup
-            .append("text")
-            .attr("data-type", DateType.Year)
-            .text(DateType.Year);
-        this.dateTypeButtons.push(dateBtn4);                            
+                const dateBtn = this.dateTypeGroup
+                    .append("text")
+                    .attr("data-type", dateType)
+                    .text(dateType);
+                this.dateTypeButtons.push(dateBtn);
+            }
+        }
 
         // create legend container
         const interactiveBehavior: IInteractiveBehavior = this.colorHelper.isHighContrast ? new OpacityLegendBehavior() : null;
@@ -568,9 +543,15 @@ export class Gantt implements IVisual {
                     ? this.viewModel.settings.taskLabelsCardSettings.width.value * (this.viewModel.columnsData.columns.length + 1)
                     : 0;
 
+                let visibleCount:number = 0;    
+                this.dateTypeButtonsRect.forEach(dateTypeBtnRect => {
+                    if (this.isDateTypeBtnVisible(dateTypeBtnRect)) 
+                        visibleCount++;  
+                });            
+
                 const scrollTop: number = <number>event.target.scrollTop;
                 const scrollLeft: number = <number>event.target.scrollLeft;
-                const viewClientWidth: number = <number>event.target.clientWidth - ((this.dateTypeButtonsRect.length + 1) * Gantt.DateTypeBtnWidth);
+                const viewClientWidth: number = <number>event.target.clientWidth - ((visibleCount + 1) * Gantt.DateTypeBtnWidth);
 
                 this.axisGroup
                     .attr("transform", SVGManipulations.translate(taskLabelsWidth + this.margin.left + Gantt.SubtasksLeftMargin, Gantt.TaskLabelsMarginTop + scrollTop));
@@ -2440,6 +2421,37 @@ export class Gantt implements IVisual {
         }
     }
 
+    private isDateTypeBtnVisible(dateTypeBtnRect: Selection<any, any>): boolean {
+        if (!dateTypeBtnRect)
+            return false;
+
+        if (dateTypeBtnRect.attr("data-type") === DateType.Second)
+            return this.viewModel.settings.dateTypeCardSettings.showDateSecond.value;
+
+        if (dateTypeBtnRect.attr("data-type") === DateType.Minute)
+            return this.viewModel.settings.dateTypeCardSettings.showDateMinute.value;
+
+        if (dateTypeBtnRect.attr("data-type") === DateType.Hour)
+            return this.viewModel.settings.dateTypeCardSettings.showDateHour.value;
+
+        if (dateTypeBtnRect.attr("data-type") === DateType.Day)
+            return this.viewModel.settings.dateTypeCardSettings.showDateDay.value;
+
+        if (dateTypeBtnRect.attr("data-type") === DateType.Week)
+            return this.viewModel.settings.dateTypeCardSettings.showDateWeek.value;
+        
+        if (dateTypeBtnRect.attr("data-type") === DateType.Month)
+            return this.viewModel.settings.dateTypeCardSettings.showDateMonth.value;
+
+        if (dateTypeBtnRect.attr("data-type") === DateType.Quarter)
+            return this.viewModel.settings.dateTypeCardSettings.showDateQuarter.value;
+
+        if (dateTypeBtnRect.attr("data-type") === DateType.Year)
+            return this.viewModel.settings.dateTypeCardSettings.showDateYear.value;
+        
+        return false;
+    }
+
     private updateDateTypeGroup() {
         //this.dateTypeGroup
         //    .selectAll("text")
@@ -2452,40 +2464,49 @@ export class Gantt implements IVisual {
                 //.attr("height", 2 * Gantt.TaskLabelsMarginTop)
                 //.attr("fill", categoriesAreaBackgroundColor);
 
-        const backgroundColor: string = this.colorHelper.getThemeColor();
-        const viewClientWidth: number = (this.ganttDiv.node() as SVGSVGElement).clientWidth - ((this.dateTypeButtonsRect.length + 1) * Gantt.DateTypeBtnWidth);
+        const backgroundColor: string = this.colorHelper.getThemeColor();        
+
+        let visibleCount = 0;                
+        let xPos = this.secondExpandAllIconOffset + this.groupLabelSize;
+        this.dateTypeButtonsRect.forEach(dateTypeBtnRect => {
+            if (this.isDateTypeBtnVisible(dateTypeBtnRect)) {
+                dateTypeBtnRect
+                    .attr("y", "0px")
+                    .attr("x", xPos)
+                    .attr("width", Gantt.DateTypeBtnWidth)
+                    .attr("height", "30px")
+                    .attr("stroke", this.colorHelper.getHighContrastColor("foreground", Gantt.DefaultValues.TaskLineColor))
+                    .attr("fill", dateTypeBtnRect.attr("data-type") === this.currentDateType ? this.colorHelper.getHighContrastColor("foreground", Gantt.DefaultValues.TaskLineColor) : backgroundColor)
+                    .attr("stroke-width", "1");
+                xPos = xPos + Gantt.DateTypeBtnWidth;  
+                visibleCount++;  
+            } else {
+                dateTypeBtnRect.attr("width", 0);
+            }
+        });
+
+        xPos = this.secondExpandAllIconOffset + this.groupLabelSize + 10;
+        this.dateTypeButtons.forEach(dateTypeBtn => {
+            if (this.isDateTypeBtnVisible(dateTypeBtn)) {
+                dateTypeBtn
+                    .attr("y", "20px")
+                    .attr("x", xPos)
+                    .attr("font-size", "12px")
+                    .attr("fill", this.viewModel.settings.dateTypeCardSettings.axisColor.value.value);
+
+                xPos = xPos + Gantt.DateTypeBtnWidth;
+            } else {
+                dateTypeBtn.attr("width", 0);
+            }    
+        });
+
+        const viewClientWidth: number = (this.ganttDiv.node() as SVGSVGElement).clientWidth - ((visibleCount + 1) * Gantt.DateTypeBtnWidth);
         const translateXValue: number = viewClientWidth + (this.ganttDiv.node() as SVGSVGElement).scrollLeft;
         const translateYValue: number = (this.ganttDiv.node() as SVGSVGElement).scrollTop;
                 
         this.dateTypeGroup
                 .attr("fill", backgroundColor)
                 .attr("transform", SVGManipulations.translate(translateXValue, translateYValue));
-        
-
-        let xPos = this.secondExpandAllIconOffset + this.groupLabelSize;
-        this.dateTypeButtonsRect.forEach(dateTypeBtnRect => {
-            dateTypeBtnRect
-                .attr("y", "0px")
-                .attr("x", xPos)
-                .attr("width", Gantt.DateTypeBtnWidth)
-                .attr("height", "30px")
-                .attr("stroke", this.colorHelper.getHighContrastColor("foreground", Gantt.DefaultValues.TaskLineColor))
-                .attr("fill", dateTypeBtnRect.attr("data-type") === this.currentDateType ? this.colorHelper.getHighContrastColor("foreground", Gantt.DefaultValues.TaskLineColor) : backgroundColor)
-                .attr("stroke-width", "1");
-
-            xPos = xPos + Gantt.DateTypeBtnWidth;    
-        });
-
-        xPos = this.secondExpandAllIconOffset + this.groupLabelSize + 10;
-        this.dateTypeButtons.forEach(dateTypeBtn => {
-            dateTypeBtn
-                .attr("y", "20px")
-                .attr("x", xPos)
-                .attr("font-size", "12px")
-                .attr("fill", this.viewModel.settings.dateTypeCardSettings.axisColor.value.value);
-
-            xPos = xPos + Gantt.DateTypeBtnWidth;
-        });
     }
 
     private updateCollapseAllGroup(categoriesAreaBackgroundColor: string, taskLabelShow: boolean) {

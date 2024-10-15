@@ -617,6 +617,46 @@
                         "bool": false
                     }
                 },
+                "showDateSecond": {
+                    "type": {
+                        "bool": false
+                    }
+                },
+                "showDateMinute": {
+                    "type": {
+                        "bool": false
+                    }
+                },
+                "showDateHour": {
+                    "type": {
+                        "bool": false
+                    }
+                },
+                "showDateDay": {
+                    "type": {
+                        "bool": false
+                    }
+                },
+                "showDateWeek": {
+                    "type": {
+                        "bool": false
+                    }
+                },
+                "showDateMonth": {
+                    "type": {
+                        "bool": false
+                    }
+                },
+                "showDateQuarter": {
+                    "type": {
+                        "bool": false
+                    }
+                },
+                "showDateYear": {
+                    "type": {
+                        "bool": false
+                    }
+                },
                 "type": {
                     "type": {
                         "text": true
