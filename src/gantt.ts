@@ -370,6 +370,8 @@ export class Gantt implements IVisual {
     private dateTypeGroup: Selection<any>;
     private dateTypeButtonsRect: Selection<any>[] = [];
     private dateTypeButtons: Selection<any>[] = [];
+    private dateTypeClipPathLeft: Selection<any>;
+    private dateTypeClipPathRight: Selection<any>;
     private headerGroup: Selection<any>;
     private headerGroupRect: Selection<any>;
     private axisGroup: Selection<any>;
@@ -516,9 +518,9 @@ export class Gantt implements IVisual {
                     .append("rect")
                     .attr("data-type", dateType)
                     .attr("fill", axisBackgroundColor)
-                    .attr("width", 0)
-                    .attr("rx", Gantt.RectRound)  // Add this line to round the corners
-                    .attr("ry", Gantt.RectRound);        
+                    .attr("width", 0);
+                    //.attr("rx", Gantt.RectRound)  // Add this line to round the corners
+                    //.attr("ry", Gantt.RectRound);        
                 this.dateTypeButtonsRect.push(dateTypeRect);
         
                 const dateBtn = this.dateTypeGroup
@@ -2473,18 +2475,46 @@ export class Gantt implements IVisual {
 
         let visibleCount = 0;                
         let xPos = this.secondExpandAllIconOffset + this.groupLabelSize;
+        const visibleRect: Selection<any, any>[] = this.dateTypeButtonsRect.filter(x => this.isDateTypeBtnVisible(x));
+
+        visibleRect.forEach(dateTypeBtnRect => {
+            const isFirst = (visibleCount === 0);
+            const isLast = (visibleCount === (visibleRect.length - 1));
+            const isRounded = isFirst || isLast;
+            const width = isRounded ? buttonWidth + Gantt.RectRound : buttonWidth;
+            const round = isRounded ? Gantt.RectRound : 0;
+
+            dateTypeBtnRect
+                .attr("y", "0px")
+                .attr("x", isLast ? xPos - round : xPos)
+                .attr("width", width)                
+                .attr("height", "30px")
+                .attr("rx", round)                
+                .attr("ry", round)
+                .attr("stroke", this.colorHelper.getHighContrastColor("foreground", Gantt.DefaultValues.TaskLineColor))
+                .attr("fill", dateTypeBtnRect.attr("data-type") === this.currentDateType ? this.viewModel.settings.dateTypeCardSettings.buttonSelectionColor.value.value : backgroundColor)
+                .attr("stroke-width", "1");
+            
+            xPos = xPos + buttonWidth;  
+            visibleCount++;  
+        })
+
+
         this.dateTypeButtonsRect.forEach(dateTypeBtnRect => {
             if (this.isDateTypeBtnVisible(dateTypeBtnRect)) {
+                /*
                 dateTypeBtnRect
                     .attr("y", "0px")
                     .attr("x", xPos)
                     .attr("width", buttonWidth)
                     .attr("height", "30px")
                     .attr("stroke", this.colorHelper.getHighContrastColor("foreground", Gantt.DefaultValues.TaskLineColor))
-                    .attr("fill", dateTypeBtnRect.attr("data-type") === this.currentDateType ? this.viewModel.settings.dateTypeCardSettings.buttonSelectionColor.value.value : backgroundColor)
+                    //.attr("fill", dateTypeBtnRect.attr("data-type") === this.currentDateType ? this.viewModel.settings.dateTypeCardSettings.buttonSelectionColor.value.value : backgroundColor)
+                    .attr("fill", "yellow")
                     .attr("stroke-width", "1");
                 xPos = xPos + buttonWidth;  
                 visibleCount++;  
+                */
             } else {
                 dateTypeBtnRect.attr("width", 0);
             }
@@ -2493,19 +2523,21 @@ export class Gantt implements IVisual {
         xPos = this.secondExpandAllIconOffset + this.groupLabelSize + 10;
         this.dateTypeButtons.forEach(dateTypeBtn => {
             if (this.isDateTypeBtnVisible(dateTypeBtn)) {
+                const text = dateTypeBtn.attr("data-type");
+
                 dateTypeBtn
                     .attr("y", "20px")
                     .attr("x", xPos)
                     .attr("width", buttonWidth)
                     .attr("font-size", "12px")
-                    .attr("fill", this.viewModel.settings.dateTypeCardSettings.buttonFontColor.value.value);
-                    
+                    .attr("fill", this.viewModel.settings.dateTypeCardSettings.buttonFontColor.value.value)
+                    .text(text);
 
                 xPos = xPos + buttonWidth;
             } else {
                 dateTypeBtn
                   .attr("width", 0)
-                  //.text("");
+                  .text("");
             }    
         });
 
