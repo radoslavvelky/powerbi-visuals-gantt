@@ -341,7 +341,6 @@ export class Gantt implements IVisual {
     private static SubtasksLeftMargin: number = 10;
     private static NotCompletedTaskOpacity: number = .5;
     private static TaskOpacity: number = 1;
-    public static DateTypeBtnWidth: number = 65;
     public static RectRound: number = 7;
     private static HeaderHeight: number = 60;
 
@@ -517,6 +516,7 @@ export class Gantt implements IVisual {
                     .append("rect")
                     .attr("data-type", dateType)
                     .attr("fill", axisBackgroundColor)
+                    .attr("width", 0)
                     .attr("rx", Gantt.RectRound)  // Add this line to round the corners
                     .attr("ry", Gantt.RectRound);        
                 this.dateTypeButtonsRect.push(dateTypeRect);
@@ -524,6 +524,7 @@ export class Gantt implements IVisual {
                 const dateBtn = this.dateTypeGroup
                     .append("text")
                     .attr("data-type", dateType)
+                    .attr("width", 0)
                     .text(dateType);
                 this.dateTypeButtons.push(dateBtn);
             }
@@ -553,7 +554,7 @@ export class Gantt implements IVisual {
 
                 const scrollTop: number = <number>event.target.scrollTop;
                 const scrollLeft: number = <number>event.target.scrollLeft;
-                const viewClientWidth: number = <number>event.target.clientWidth - ((visibleCount + 1) * Gantt.DateTypeBtnWidth);
+                const viewClientWidth: number = <number>event.target.clientWidth - ((visibleCount + 1) * this.viewModel.settings.dateTypeCardSettings.buttonWidth.value);
 
                 this.axisGroup
                     .attr("transform", SVGManipulations.translate(taskLabelsWidth + this.margin.left + Gantt.SubtasksLeftMargin, Gantt.TaskLabelsMarginTop + scrollTop));
@@ -2459,6 +2460,7 @@ export class Gantt implements IVisual {
         //    .selectAll("text")
         //    .remove();
 
+
         this.collapseAllGroup
                 .append("rect")
                 .attr("width", this.viewModel.settings.taskLabelsCardSettings.width.value)
@@ -2467,6 +2469,7 @@ export class Gantt implements IVisual {
                 //.attr("fill", categoriesAreaBackgroundColor);
 
         const backgroundColor: string = this.colorHelper.getThemeColor();        
+        const buttonWidth = this.viewModel.settings.dateTypeCardSettings.buttonWidth.value;
 
         let visibleCount = 0;                
         let xPos = this.secondExpandAllIconOffset + this.groupLabelSize;
@@ -2475,12 +2478,12 @@ export class Gantt implements IVisual {
                 dateTypeBtnRect
                     .attr("y", "0px")
                     .attr("x", xPos)
-                    .attr("width", Gantt.DateTypeBtnWidth)
+                    .attr("width", buttonWidth)
                     .attr("height", "30px")
                     .attr("stroke", this.colorHelper.getHighContrastColor("foreground", Gantt.DefaultValues.TaskLineColor))
-                    .attr("fill", dateTypeBtnRect.attr("data-type") === this.currentDateType ? this.colorHelper.getHighContrastColor("foreground", Gantt.DefaultValues.TaskLineColor) : backgroundColor)
+                    .attr("fill", dateTypeBtnRect.attr("data-type") === this.currentDateType ? this.viewModel.settings.dateTypeCardSettings.buttonSelectionColor.value.value : backgroundColor)
                     .attr("stroke-width", "1");
-                xPos = xPos + Gantt.DateTypeBtnWidth + 7;  
+                xPos = xPos + buttonWidth;  
                 visibleCount++;  
             } else {
                 dateTypeBtnRect.attr("width", 0);
@@ -2493,16 +2496,20 @@ export class Gantt implements IVisual {
                 dateTypeBtn
                     .attr("y", "20px")
                     .attr("x", xPos)
+                    .attr("width", buttonWidth)
                     .attr("font-size", "12px")
-                    .attr("fill", this.viewModel.settings.dateTypeCardSettings.axisColor.value.value);
+                    .attr("fill", this.viewModel.settings.dateTypeCardSettings.buttonFontColor.value.value);
+                    
 
-                xPos = xPos + Gantt.DateTypeBtnWidth + 7;
+                xPos = xPos + buttonWidth;
             } else {
-                dateTypeBtn.attr("width", 0);
+                dateTypeBtn
+                  .attr("width", 0)
+                  //.text("");
             }    
         });
 
-        const viewClientWidth: number = (this.ganttDiv.node() as SVGSVGElement).clientWidth - ((visibleCount + 1) * Gantt.DateTypeBtnWidth);
+        const viewClientWidth: number = (this.ganttDiv.node() as SVGSVGElement).clientWidth - ((visibleCount + 1) * buttonWidth);
         const translateXValue: number = viewClientWidth + (this.ganttDiv.node() as SVGSVGElement).scrollLeft;
         const translateYValue: number = (this.ganttDiv.node() as SVGSVGElement).scrollTop;
                 

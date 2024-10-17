@@ -84,6 +84,8 @@ class FontSizeSettings {
 class WidthSettings {
     public static readonly DefaultFontSize: number = 110;
     public static readonly MinFontSize: number = 0;
+    public static readonly DefaultDateTypeButtonSize: number = 65;
+    public static readonly MinDateTypeButtonSize: number = 0;
 }
 
 class HeightSettings {
@@ -460,57 +462,51 @@ export class TaskResourceCardSettings extends Card {
 
 export class DateTypeCardSettings extends Card {
 
-    showDateSwitch = new formattingSettings.ToggleSwitch({
-        name: "showDateSwitch",
-        displayNameKey: "Visual_DateType_showDateSwitch",
-        value: false
-    });
-
     showDateSecond = new formattingSettings.ToggleSwitch({
         name: "showDateSecond",
-        displayNameKey: "Visual_DateType_showDateSecond",
+        displayNameKey: "Visual_DateType_ShowDateSecond",
         value: false
     });
 
     showDateMinute = new formattingSettings.ToggleSwitch({
         name: "showDateMinute",
-        displayNameKey: "Visual_DateType_showDateMinute",
+        displayNameKey: "Visual_DateType_ShowDateMinute",
         value: false
     });
 
     showDateHour = new formattingSettings.ToggleSwitch({
         name: "showDateHour",
-        displayNameKey: "Visual_DateType_showDateHour",
+        displayNameKey: "Visual_DateType_ShowDateHour",
         value: false
     });
 
     showDateDay = new formattingSettings.ToggleSwitch({
         name: "showDateDay",
-        displayNameKey: "Visual_DateType_showDateDay",
+        displayNameKey: "Visual_DateType_ShowDateDay",
         value: true
     });
 
     showDateWeek = new formattingSettings.ToggleSwitch({
         name: "showDateWeek",
-        displayNameKey: "Visual_DateType_showDateWeek",
+        displayNameKey: "Visual_DateType_ShowDateWeek",
         value: true
     });
 
     showDateMonth = new formattingSettings.ToggleSwitch({
         name: "showDateMonth",
-        displayNameKey: "Visual_DateType_showDateMonth",
+        displayNameKey: "Visual_DateType_ShowDateMonth",
         value: true
     });
 
     showDateQuarter = new formattingSettings.ToggleSwitch({
         name: "showDateQuarter",
-        displayNameKey: "Visual_DateType_showDateQuarter",
+        displayNameKey: "Visual_DateType_ShowDateQuarter",
         value: false
     });
 
     showDateYear = new formattingSettings.ToggleSwitch({
         name: "showDateYear",
-        displayNameKey: "Visual_DateType_showDateYear",
+        displayNameKey: "Visual_DateType_ShowDateYear",
         value: true
     });
     
@@ -539,9 +535,37 @@ export class DateTypeCardSettings extends Card {
         value: { value: "#000000" }
     });
 
+    buttonSelectionColor = new formattingSettings.ColorPicker({
+        name: "buttonSelectionColor",
+        displayNameKey: "Visual_DateType_ButtonSelectionColor",
+        value: { value: "#CCCCCC" }
+    });
+
+    buttonFontColor = new formattingSettings.ColorPicker({
+        name: "buttonFontColor",
+        displayNameKey: "Visual_DateType_ButtonFontColor",
+        value: { value: "#000000" }
+    });
+
+    buttonWidth = new formattingSettings.NumUpDown({
+        name: "buttonWidth",
+        displayNameKey: "Visual_DateType_ButtonWidth",
+        value: WidthSettings.DefaultDateTypeButtonSize,
+        options: {
+            minValue: {
+                type: powerbiVisualsApi.visuals.ValidatorType.Min,
+                value: WidthSettings.MinDateTypeButtonSize,
+            },
+        }
+    });
+
     name: string = "dateType";
     displayNameKey: string = "Visual_DateType";
-    slices = [this.showDateSwitch, this.type, this.todayColor, this.axisColor, this.axisTextColor, this.showDateSecond, this.showDateMinute, this.showDateHour, this.showDateDay, this.showDateWeek, this.showDateMonth, this.showDateQuarter, this.showDateYear];
+    slices = [this.type, this.showDateSecond, this.showDateMinute, this.showDateHour, this.showDateDay, 
+              this.showDateWeek, this.showDateMonth, this.showDateQuarter, this.showDateYear,
+              this.todayColor, this.axisColor, this.axisTextColor, this.buttonSelectionColor, 
+              this.buttonFontColor, this.buttonWidth
+            ];
 }
 
 export class GanttChartSettingsModel extends Model { 

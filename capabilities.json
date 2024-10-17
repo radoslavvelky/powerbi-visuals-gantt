@@ -612,49 +612,44 @@
         },
         "dateType": {
             "properties": {
-                "showDateSwitch": {
-                    "type": {
-                        "bool": false
-                    }
-                },
                 "showDateSecond": {
                     "type": {
-                        "bool": false
+                        "bool": true
                     }
                 },
                 "showDateMinute": {
                     "type": {
-                        "bool": false
+                        "bool": true
                     }
                 },
                 "showDateHour": {
                     "type": {
-                        "bool": false
+                        "bool": true
                     }
                 },
                 "showDateDay": {
                     "type": {
-                        "bool": false
+                        "bool": true
                     }
                 },
                 "showDateWeek": {
                     "type": {
-                        "bool": false
+                        "bool": true
                     }
                 },
                 "showDateMonth": {
                     "type": {
-                        "bool": false
+                        "bool": true
                     }
                 },
                 "showDateQuarter": {
                     "type": {
-                        "bool": false
+                        "bool": true
                     }
                 },
                 "showDateYear": {
                     "type": {
-                        "bool": false
+                        "bool": true
                     }
                 },
                 "type": {
@@ -687,6 +682,29 @@
                                 "color": true
                             }
                         }
+                    }
+                },
+                "buttonSelectionColor": {
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "buttonFontColor": {
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "buttonWidth": {
+                    "type": {
+                        "numeric": true
                     }
                 }
             }
