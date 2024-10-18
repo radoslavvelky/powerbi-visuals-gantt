@@ -1,6 +1,29 @@
 import { getRandomNumber } from "powerbi-visuals-utils-testutils";
 import lodashRange from "lodash.range";
 
+export const drawCornerRoundedRectByPath = (x: number, y: number, width: number, height: number, radiusLeftTop: number, radiusLeftBottom: number, radiusRightTop: number, radiusRightBottom: number) => {
+    if (!width || !height) {
+        return undefined;
+    }
+    const r1 = radiusLeftTop;
+    const r2 = radiusLeftBottom;
+    const r3 = radiusRightTop;
+    const r4 = radiusRightBottom;
+
+    return `
+    M${x+r1},${y}
+    h${width - r3 - r1}
+    a${r3},${r3} 0 0 1 ${r3},${r3}
+    v${height - r3 - r4}
+    a${r4},${r4} 0 0 1 ${-r4},${r4}
+    h${r4 + r2 - width}
+    a${r2},${r2} 0 0 1 ${-r2},${-r2}
+    v${r2 + r1 - height}
+    a${r1},${r1} 0 0 1 ${r1},${-r1}
+    z
+    `;
+};
+
 export const drawRoundedRectByPath = (x: number, y: number, width: number, height: number, radius: number) => {
     if (!width || !height) {
         return undefined;
