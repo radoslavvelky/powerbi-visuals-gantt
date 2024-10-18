@@ -86,6 +86,8 @@ class WidthSettings {
     public static readonly MinFontSize: number = 0;
     public static readonly DefaultDateTypeButtonSize: number = 65;
     public static readonly MinDateTypeButtonSize: number = 0;
+    public static readonly DefaultColumnSize: number = 65;
+    public static readonly MinColumnSize: number = 0;
 }
 
 class HeightSettings {
@@ -568,6 +570,105 @@ export class DateTypeCardSettings extends Card {
             ];
 }
 
+export class ColumnsCardSettings extends Card {
+    //Column 1
+    columnColor1 = new formattingSettings.ColorPicker({
+        name: "columnColor1",
+        displayNameKey: "Visual_DateType_ColumnColor1",
+        value: { value: "#CCCCCC" }
+    });
+    columnWidth1 = new formattingSettings.NumUpDown({
+        name: "columnWidth1",
+        displayNameKey: "Visual_DateType_ColumnWidth1",
+        value: WidthSettings.DefaultColumnSize,
+        options: {
+            minValue: {
+                type: powerbiVisualsApi.visuals.ValidatorType.Min,
+                value: WidthSettings.MinColumnSize,
+            },
+        }
+    });
+
+    //Column 2
+    columnColor2 = new formattingSettings.ColorPicker({
+        name: "columnColor2",
+        displayNameKey: "Visual_DateType_ColumnColor2",
+        value: { value: "#CCCCCC" }
+    });
+    columnWidth2 = new formattingSettings.NumUpDown({
+        name: "columnWidth2",
+        displayNameKey: "Visual_DateType_ColumnWidth2",
+        value: WidthSettings.DefaultColumnSize,
+        options: {
+            minValue: {
+                type: powerbiVisualsApi.visuals.ValidatorType.Min,
+                value: WidthSettings.MinColumnSize,
+            },
+        }
+    });
+
+    //Column 3
+    columnColor3 = new formattingSettings.ColorPicker({
+        name: "columnColor3",
+        displayNameKey: "Visual_DateType_ColumnColor3",
+        value: { value: "#CCCCCC" }
+    });
+    columnWidth3 = new formattingSettings.NumUpDown({
+        name: "columnWidth3",
+        displayNameKey: "Visual_DateType_ColumnWidth3",
+        value: WidthSettings.DefaultColumnSize,
+        options: {
+            minValue: {
+                type: powerbiVisualsApi.visuals.ValidatorType.Min,
+                value: WidthSettings.MinColumnSize,
+            },
+        }
+    });
+
+    //Column 4
+    columnColor4 = new formattingSettings.ColorPicker({
+        name: "columnColor4",
+        displayNameKey: "Visual_DateType_ColumnColor4",
+        value: { value: "#CCCCCC" }
+    });
+    columnWidth4 = new formattingSettings.NumUpDown({
+        name: "columnWidth4",
+        displayNameKey: "Visual_DateType_ColumnWidth4",
+        value: WidthSettings.DefaultColumnSize,
+        options: {
+            minValue: {
+                type: powerbiVisualsApi.visuals.ValidatorType.Min,
+                value: WidthSettings.MinColumnSize,
+            },
+        }
+    });
+
+    //Column 5
+    columnColor5 = new formattingSettings.ColorPicker({
+        name: "columnColor5",
+        displayNameKey: "Visual_DateType_ColumnColor5",
+        value: { value: "#CCCCCC" }
+    });
+    columnWidth5 = new formattingSettings.NumUpDown({
+        name: "columnWidth5",
+        displayNameKey: "Visual_DateType_ColumnWidth5",
+        value: WidthSettings.DefaultColumnSize,
+        options: {
+            minValue: {
+                type: powerbiVisualsApi.visuals.ValidatorType.Min,
+                value: WidthSettings.MinColumnSize,
+            },
+        }
+    });
+
+    name: string = "columns";
+    displayNameKey: string = "Visual_Columns";
+    slices = [this.columnColor1, this.columnWidth1, this.columnColor2, this.columnWidth2, 
+              this.columnColor3, this.columnWidth3, this.columnColor4, this.columnWidth4,
+              this.columnColor5, this.columnWidth5,
+            ];
+}
+
 export class GanttChartSettingsModel extends Model { 
     generalCardSettings = new GeneralCardSettings();
     collapsedTasksCardSettings = new CollapsedTasksCardSettings();
@@ -581,10 +682,11 @@ export class GanttChartSettingsModel extends Model {
     taskConfigCardSettings = new TaskConfigCardSettings();
     taskResourceCardSettings = new TaskResourceCardSettings();
     dateTypeCardSettings = new DateTypeCardSettings();
+    columnsCardSettings = new ColumnsCardSettings();
     
     cards = [this.generalCardSettings, this.collapsedTasksCardSettings, this.collapsedTasksUpdateIdCardSettings, this.daysOffCardSettings, this.legendCardSettings, 
             this.milestonesCardSettings, this.taskLabelsCardSettings, this.taskCompletionCardSettings, 
-            this.tooltipConfigCardSettings, this.taskConfigCardSettings, this.taskResourceCardSettings, this.dateTypeCardSettings];
+            this.tooltipConfigCardSettings, this.taskConfigCardSettings, this.taskResourceCardSettings, this.dateTypeCardSettings, this.columnsCardSettings];
 
     
     setLocalizedOptions(localizationManager: ILocalizationManager) {

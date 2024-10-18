@@ -199,3 +199,7 @@ export interface ColumnsData {
     columns: ColumnData[];
 }
 
+export interface ColumnSettings {
+    color: string;
+    width: number;
+}

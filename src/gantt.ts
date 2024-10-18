@@ -107,7 +107,8 @@ import {
     Task,
     TaskDaysOff,
     TaskTypeMetadata,
-    TaskTypes
+    TaskTypes,
+    ColumnSettings
 } from "./interfaces";
 import {DurationHelper} from "./durationHelper";
 import {GanttColumns} from "./columns";
@@ -545,7 +546,7 @@ export class Gantt implements IVisual {
         this.ganttDiv.on("scroll", (event) => {
             if (this.viewModel) {
                 const taskLabelsWidth: number = this.viewModel.settings.taskLabelsCardSettings.show.value
-                    ? this.viewModel.settings.taskLabelsCardSettings.width.value * (this.viewModel.columnsData.columns.length + 1)
+                    ? this.viewModel.settings.taskLabelsCardSettings.width.value + this.getVisibleColumnsWidth()
                     : 0;
 
                 let visibleCount:number = 0;    
@@ -2051,7 +2052,7 @@ export class Gantt implements IVisual {
 
         const fullResourceLabelMargin = groupedTasks.length * this.getResourceLabelTopMargin();
         const taskLabelsWidth: number = settings.taskLabelsCardSettings.show.value
-            ? settings.taskLabelsCardSettings.width.value * (this.viewModel.columnsData.columns.length + 1)
+            ? settings.taskLabelsCardSettings.width.value + this.getVisibleColumnsWidth()
             : 0;
 
         let widthBeforeConversion = this.margin.left + taskLabelsWidth + axisLength;
@@ -2237,6 +2238,53 @@ export class Gantt implements IVisual {
         return this.viewModel.columnsData.columns[index].valuePoints[task.id] ? this.viewModel.columnsData.columns[index].valuePoints[task.id].name : ""
     }
 
+    private getVisibleColumnsWidth(): number {
+        let width = 0;
+
+        let index = 1;
+        this.viewModel.columnsData.columns.forEach((column: ColumnData) => {
+            const columnSettings = this.getColumnSettingsById(index, "", this.viewModel.settings.taskLabelsCardSettings.width.value);
+            width += columnSettings.width;                        
+            index++;
+        });
+        return width;
+    }
+
+    private getColumnSettingsById(index: number, defaultColor: string, defaultWidth: number): ColumnSettings {
+        let color:string = defaultColor;
+        let width:number = defaultWidth;
+        switch (index) {
+            case 1:
+                color = this.viewModel.settings.columnsCardSettings.columnColor1.value.value;
+                width = this.viewModel.settings.columnsCardSettings.columnWidth1.value;
+                break;
+            case 2:    
+                color = this.viewModel.settings.columnsCardSettings.columnColor2.value.value;
+                width = this.viewModel.settings.columnsCardSettings.columnWidth2.value;
+                break
+            case 3:
+                color = this.viewModel.settings.columnsCardSettings.columnColor3.value.value;
+                width = this.viewModel.settings.columnsCardSettings.columnWidth3.value;                
+                break
+            case 4:
+                color = this.viewModel.settings.columnsCardSettings.columnColor4.value.value;
+                width = this.viewModel.settings.columnsCardSettings.columnWidth4.value;
+                break
+            case 5:
+                color = this.viewModel.settings.columnsCardSettings.columnColor5.value.value;
+                width = this.viewModel.settings.columnsCardSettings.columnWidth5.value;
+                break
+        }
+
+        //return new columnSettings with color and width
+        const columnSettings:ColumnSettings = {
+            color: color,
+            width: width
+        } 
+        
+        return columnSettings;
+    }
+
     /**
     * Update task labels and add its tooltips
     * @param tasks All tasks array
@@ -2313,11 +2361,13 @@ export class Gantt implements IVisual {
             let xPos = taskLabelsWidth;                  
             for (let index = 0; index < Math.max(this.viewModel.columnsData.columns.length, this.lineGroupColumnWrapper.length); index++) {
 
+                const columnSettings = this.getColumnSettingsById(index+1, isHighContrast ? categoriesAreaBackgroundColor : Gantt.DefaultValues.TaskCategoryLabelsRectColor, taskLabelsWidth);
+
                 const colWrapper = this.lineGroupColumnWrapper[index];
                 if (index < this.viewModel.columnsData.columns.length) {                
                     colWrapper
-                        .attr("width", taskLabelsWidth)
-                        .attr("fill", isHighContrast ? categoriesAreaBackgroundColor : Gantt.DefaultValues.TaskCategoryLabelsRectColor)
+                        .attr("width", columnSettings.width)
+                        .attr("fill", columnSettings.color)
                         .attr("stroke", this.colorHelper.getHighContrastColor("foreground", Gantt.DefaultValues.TaskLineColor))
                         .attr("stroke-width", 1)
                         .attr("x", xPos);
@@ -2342,7 +2392,7 @@ export class Gantt implements IVisual {
                         .text((task: GroupedTask) => task.name);
                 
 
-                    xPos += taskLabelsWidth;
+                    xPos += columnSettings.width;
                 } else {
                     colWrapper
                         .attr("width", 0)
@@ -3513,7 +3563,7 @@ export class Gantt implements IVisual {
     private updateElementsPositions(margin: IMargin): void {
         const settings: GanttChartSettingsModel = this.viewModel.settings;
         const taskLabelsWidth: number = settings.taskLabelsCardSettings.show.value
-            ? settings.taskLabelsCardSettings.width.value * (this.viewModel.columnsData.columns.length + 1)
+            ? settings.taskLabelsCardSettings.width.value + this.getVisibleColumnsWidth()
             : 0;
 
         let translateXValue: number = taskLabelsWidth + margin.left + Gantt.SubtasksLeftMargin;

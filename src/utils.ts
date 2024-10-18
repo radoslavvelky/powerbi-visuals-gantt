@@ -25,6 +25,8 @@ export const drawCornerRoundedRectByPath = (x: number, y: number, width: number,
 };
 
 export const drawRoundedRectByPath = (x: number, y: number, width: number, height: number, radius: number) => {
+    return drawCornerRoundedRectByPath(x,y,width,height,radius, radius, radius, radius);
+    /*
     if (!width || !height) {
         return undefined;
     }
@@ -42,6 +44,7 @@ export const drawRoundedRectByPath = (x: number, y: number, width: number, heigh
     a${r},${r} 0 0 1 ${r},${-r}
     z
     `;
+    */
 };
 
 export const drawNotRoundedRectByPath = (x: number, y: number, width: number, height: number) => {

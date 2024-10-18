@@ -129,7 +129,7 @@
                     },
                     "Milestones": {
                         "min": 0,
-                        "max": 1
+                        "max": 10
                     }
                 },
                 {
@@ -175,7 +175,7 @@
                     },
                     "Milestones": {
                         "min": 0,
-                        "max": 1
+                        "max": 10
                     }
                 },
                 {
@@ -221,7 +221,7 @@
                     },
                     "Milestones": {
                         "min": 0,
-                        "max": 1
+                        "max": 10
                     }
                 },
                 {
@@ -267,7 +267,7 @@
                     },
                     "Milestones": {
                         "min": 0,
-                        "max": 1
+                        "max": 10
                     }
                 }
             ],
@@ -703,6 +703,80 @@
                     }
                 },
                 "buttonWidth": {
+                    "type": {
+                        "numeric": true
+                    }
+                }
+            }
+        },
+        "columns": {
+            "properties": {
+                "columnColor1": {
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "columnColor2": {
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "columnColor3": {
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "columnColor4": {
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "columnColor5": {
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "columnWidth1": {
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "columnWidth2": {
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "columnWidth3": {
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "columnWidth4": {
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "columnWidth5": {
                     "type": {
                         "numeric": true
                     }
