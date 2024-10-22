@@ -81,6 +81,7 @@ export interface Task extends SelectableDataPoint {
     taskType: string;
     description: string;
     color: string;
+    defaultColor: string;
     tooltipInfo: VisualTooltipDataItem[];
     extraInformation: ExtraInformation[];
     daysOffList: DayOffData[];

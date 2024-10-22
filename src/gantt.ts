@@ -1231,6 +1231,7 @@ export class Gantt implements IVisual {
         const task: Task = {
             id: index,
             color,
+            defaultColor: color,
             completion,
             resource,
             index: null,
@@ -1399,6 +1400,7 @@ export class Gantt implements IVisual {
                 taskType: null,
                 description: null,
                 color: null,
+                defaultColor: null,
                 tooltipInfo: null,
                 extraInformation: collapsedTasks.includes(taskParentName) ? extraInformation : null,
                 daysOffList: null,
@@ -2233,6 +2235,7 @@ export class Gantt implements IVisual {
         }
     
         return tasks.map(x => <GroupedTask>{
+            id: x.index,
             name: x.name,
             index: x.index,
             tasks: [x],
@@ -2245,7 +2248,7 @@ export class Gantt implements IVisual {
             
             groupedTask.tasks.forEach((task: Task) => {
                 if (groupedTask.level > 1 && shadeValue > 0) {
-                    task.color = shadeColor(task.color, (shadeValue/30)*(Math.min(groupedTask.level, 5)-1)); 
+                    task.color = shadeColor(task.defaultColor, (shadeValue/30)*(Math.min(groupedTask.level, 5)-1)); 
                 }
             });
             
@@ -2458,14 +2461,13 @@ export class Gantt implements IVisual {
                         
                     const clickableAreaColumn = axisLabelGroup
                         .append("g")
-                        .classed(Gantt.ClickableArea.className, true)
+                        .classed(Gantt.ClickableArea.className + " rveTest", true)
                         .merge(axisLabelGroup);
         
                     clickableAreaColumn
                         .append("text")
-                        
                         .attr("x", (task: GroupedTask) => (xPos + Gantt.TaskLineCoordinateX))
-                        .attr("class", (task: GroupedTask) => task.tasks[0].children ? "parent" : task.tasks[0].parent ? "child" : "normal-node")
+                        .attr("class", (task: GroupedTask) => task.tasks && task.tasks.length > 0 && task.tasks[0].children ? "parent" : task.tasks[0].parent ? "child" : "normal-node")
                         .attr("y", (task: GroupedTask) => (task.index + 0.5) * this.getResourceLabelTopMargin())
                         .attr("fill", taskLabelsColor)
                         .attr("stroke-width", Gantt.AxisLabelStrokeWidth)
@@ -2487,7 +2489,7 @@ export class Gantt implements IVisual {
             //Button Expand/Collapse    
             const buttonSelection = clickableArea
                 //.filter((task: GroupedTask) => task.tasks[0].children && !!task.tasks[0].children.length)
-                .filter((task: GroupedTask) => task.tasks[0].children && task.tasks[0].children.length > 0)
+                .filter((task: GroupedTask) => task.tasks[0].children && task.tasks[0].children.length > 0 && this.viewModel.settings.taskGroupsCardSettings.groupTasks.value)
                 .append("svg")
                 .attr("viewBox", "0 0 32 32")
                 .attr("width", Gantt.DefaultValues.IconWidth)
