@@ -1145,7 +1145,7 @@ export class Gantt implements IVisual {
 
         this.updateTaskDetails(tasks, durationUnit, settings, duration, dataView, collapsedTasks);
 
-        this.addTooltipInfoForCollapsedTasks(tasks, collapsedTasks, formatters, durationUnit, localizationManager, isEndDateFilled, settings);
+        this.addTooltipInfoForTasks(tasks, collapsedTasks, formatters, durationUnit, localizationManager, isEndDateFilled, settings);
 
         return tasks;
     }
@@ -1196,9 +1196,9 @@ export class Gantt implements IVisual {
         });
     }
 
-    private static addTooltipInfoForCollapsedTasks(tasks: Task[], collapsedTasks: string[], formatters: GanttChartFormatters, durationUnit: DurationUnit, localizationManager: powerbi.extensibility.ILocalizationManager, isEndDateFilled: boolean, settings: GanttChartSettingsModel) {
+    private static addTooltipInfoForTasks(tasks: Task[], collapsedTasks: string[], formatters: GanttChartFormatters, durationUnit: DurationUnit, localizationManager: powerbi.extensibility.ILocalizationManager, isEndDateFilled: boolean, settings: GanttChartSettingsModel) {
         tasks.forEach((task: Task) => {
-            if (!task.children || collapsedTasks.includes(task.name)) {
+            //if (!task.children || collapsedTasks.includes(task.name)) {
                 task.tooltipInfo = Gantt.getTooltipInfo(task, formatters, durationUnit, localizationManager, isEndDateFilled, settings.legendCardSettings.titleText.value);
                 if (task.Milestones) {
                     task.Milestones.forEach((milestone) => {
@@ -1207,7 +1207,7 @@ export class Gantt implements IVisual {
                         milestone.tooltipInfo = Gantt.getTooltipForMilestoneLine(dateFormatted, localizationManager, dateTypesSettings, [milestone.type], [milestone.category]);
                     });
                 }
-            }
+            //}
         });
     }
 
