@@ -2692,34 +2692,117 @@ export class Gantt implements IVisual {
             // example of relationships svg quadratic line
 
             /*
-                <svg width="300" height="250">
-                    <rect x="50" y="25" width="200" height="50" fill="white" stroke="gray" stroke-width="2" rx="10" ry="10" />
-                    <rect x="150" y="125" width="60" height="50" fill="green" stroke="gray" stroke-width="2" rx="10" ry="10" />
-                    <path    
-                        stroke-width='1'
-                        fill='none' stroke='black'  
-                        d='M250,50 
-                        Q345,75 180,100'
-                    />
-                    <path    
-                        stroke-width='1'
-                        fill='none' stroke='black'  
-                        d='M180,100 
-                        Q45,125 150,150'
-                    />
-                </svg>            
-            */
-
-            //Arrow marker definition example
-            /*
-             <defs>
-                <marker id='head' orient="auto"
+                <svg width="500" height="450">
+                <defs>
+                    <marker id='head1' orient="auto"
                     markerWidth='2' markerHeight='4'
                     refX='0.1' refY='2'>
                     <!-- triangle pointing right (+x) -->
                     <path d='M0,0 V4 L2,2 Z' fill="black"/>
-                </marker>
-            </defs>            
+                    </marker>
+                </defs>
+
+                <rect x="50" y="25" width="200" height="50" fill="green" stroke="gray" stroke-width="2" rx="10" ry="10" />
+                <rect x="150" y="125" width="60" height="50" fill="green" stroke="gray" stroke-width="2" rx="10" ry="10" />
+                <!-- Finish To Start -->
+                <path    
+                    stroke-width='2'
+                    fill='none' stroke='gray'  
+                    d='M250,50 
+                    Q345,75 180,100'
+                />
+                <path    
+                    stroke-width='2'
+                    marker-end='url(#head1)'
+                    fill='none' stroke='gray'  
+                    d='M180,100 
+                    Q55,125 145,150'
+                />
+
+                <!-- Start To Start -->
+                <path    
+                    stroke-width='2'
+                    marker-end='url(#head1)'
+                    fill='none' stroke='green'  
+                    d='M50,50 
+                    Q-50,100 145,150'
+                />
+
+                <!-- Finish To Finish -->
+                <path    
+                    stroke-width='2'
+                    marker-end='url(#head1)'
+                    fill='none' stroke='orange'  
+                    d='M250,50 
+                    Q350,100 215,150'
+                />
+                
+                <!-- Start To Finish -->
+                <path    
+                    stroke-width='2'
+                    fill='none' stroke='blue'  
+                    d='M50,50 
+                    Q-50,85 145,100'
+                />
+                <path    
+                    stroke-width='2'
+                    marker-end='url(#head1)'
+                    fill='none' stroke='blue'  
+                    d='M145,100 
+                    Q315,110 215,150'
+                />  
+
+                <rect x="50" y="225" width="200" height="50" fill="green" stroke="gray" stroke-width="2" rx="10" ry="10" />
+                <rect x="350" y="325" width="60" height="50" fill="green" stroke="gray" stroke-width="2" rx="10" ry="10" />
+                <!-- Finish To Start -->
+                <path    
+                    stroke-width='2'
+                    fill='none' stroke='gray'  
+                    d='M250,250 
+                    Q300,255 300,300'
+                />
+                <path    
+                    stroke-width='2'
+                    marker-end='url(#head1)'
+                    fill='none' stroke='gray'  
+                    d='M300,300 
+                    Q300,345 345,350'
+                />  
+                
+                <!-- Start To Start -->
+                <path    
+                    stroke-width='2'
+                    marker-end='url(#head1)'
+                    fill='none' stroke='green'  
+                    d='M50,250 
+                    Q-50,300 345,350'
+                />
+                
+                <!-- Finish To Finish -->
+                <path    
+                    stroke-width='2'
+                    marker-end='url(#head1)'
+                    fill='none' stroke='orange'  
+                    d='M250,250 
+                    Q515,300 415,350'
+                />
+                    
+                <!-- Start To Finish -->
+                <path    
+                    stroke-width='2'
+                    fill='none' stroke='blue'  
+                    d='M50,250 
+                    Q-50,285 205,300'
+                />
+                <path    
+                    stroke-width='2'
+                    marker-end='url(#head1)'
+                    fill='none' stroke='blue'  
+                    d='M205,300 
+                    Q515,310 415,350'
+                />  
+                    
+                </svg>
             */
     }
 
