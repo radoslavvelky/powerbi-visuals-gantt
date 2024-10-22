@@ -1931,8 +1931,9 @@ export class Gantt implements IVisual {
         }
 
         this.collapsedTasks = JSON.parse(settings.collapsedTasksCardSettings.list.value);
-        const groupTasks = this.viewModel.settings.generalCardSettings.groupTasks.value;
-        const groupedTasks: GroupedTask[] = Gantt.getGroupTasks(tasks, groupTasks, this.collapsedTasks, this.viewModel.settings.taskConfigCardSettings.fill.value.value);
+        const groupTasks = this.viewModel.settings.taskGroupsCardSettings.groupTasks.value;
+        const shadeValue:number = this.viewModel.settings.taskGroupsCardSettings.subTaskShade.value
+        const groupedTasks: GroupedTask[] = Gantt.getGroupTasks(tasks, groupTasks, this.collapsedTasks, shadeValue);
         // do something with task ids
         this.updateCommonTasks(groupedTasks);
         this.updateCommonMilestones(groupedTasks);
@@ -2152,10 +2153,8 @@ export class Gantt implements IVisual {
             .attr("width", width);
     }
 
-    private static getGroupTasks(tasks: Task[], groupTasks: boolean, collapsedTasks: string[], taskColor: string): GroupedTask[] {
+    private static getGroupTasks(tasks: Task[], groupTasks: boolean, collapsedTasks: string[], shadeValue: number): GroupedTask[] {
         console.log("getGroupTasks tasks: ", tasks);
-        console.log("getGroupTasks groupTasks: ", groupTasks);
-        console.log("getGroupTasks taskColor: ", taskColor);
         if (groupTasks) {
             let result: GroupedTask[] = [];
             const groupedTasks: lodashDictionary<Task[]> = lodashGroupBy(tasks, x => x.name);
@@ -2191,7 +2190,7 @@ export class Gantt implements IVisual {
                 }
             });
     
-            this.assignLevelAndColorsToGroupTasks(result, taskColor); //Gantt.DefaultValues.TaskColor
+            this.assignLevelAndColorsToGroupTasks(result, shadeValue); //Gantt.DefaultValues.TaskColor
 
             result.sort((a, b) => {
                     const parentsA: GroupedTask[] = [];
@@ -2240,15 +2239,16 @@ export class Gantt implements IVisual {
             parent: null
         });
     }
-    static assignLevelAndColorsToGroupTasks(groupedTasks: GroupedTask[], baseColor: string) {
+    static assignLevelAndColorsToGroupTasks(groupedTasks: GroupedTask[], shadeValue: number) {
         groupedTasks.forEach((groupedTask: GroupedTask) => {
             groupedTask.level =  -1 ? this.getHierarchyLevel(groupedTask, groupedTasks) : groupedTask.level;
-
-            /*
+            
             groupedTask.tasks.forEach((task: Task) => {
-                task.color = shadeColor(baseColor, 0.15*(Math.min(groupedTask.level, 5)-1)); 
+                if (groupedTask.level > 1 && shadeValue > 0) {
+                    task.color = shadeColor(task.color, (shadeValue/30)*(Math.min(groupedTask.level, 5)-1)); 
+                }
             });
-            */
+            
         });
     }
 
@@ -2928,7 +2928,7 @@ export class Gantt implements IVisual {
      * @param groupedTasks Grouped tasks
      */
     private updateCommonTasks(groupedTasks: GroupedTask[]): void {
-        if (!this.viewModel.settings.generalCardSettings.groupTasks.value) {
+        if (!this.viewModel.settings.taskGroupsCardSettings.groupTasks.value) {
             groupedTasks.forEach((groupedTask: GroupedTask) => {
                 const currentTaskName: string = groupedTask.name;
                 if (this.collapsedTasks.includes(currentTaskName)) {
@@ -3346,7 +3346,7 @@ export class Gantt implements IVisual {
         taskSelection: Selection<Task>,
         taskConfigHeight: number): void {
 
-        const groupTasks: boolean = this.viewModel.settings.generalCardSettings.groupTasks.value;
+        const groupTasks: boolean = this.viewModel.settings.taskGroupsCardSettings.groupTasks.value;
         let newLabelPosition: ResourceLabelPosition | null = null;
         if (groupTasks && !this.groupTasksPrevValue) {
             newLabelPosition = ResourceLabelPosition.Inside;
@@ -3378,7 +3378,7 @@ export class Gantt implements IVisual {
         const taskResourcePosition: ResourceLabelPosition = ResourceLabelPosition[this.viewModel.settings.taskResourceCardSettings.position.value.value];
         const taskResourceFullText: boolean = this.viewModel.settings.taskResourceCardSettings.fullText.value;
         const taskResourceWidthByTask: boolean = this.viewModel.settings.taskResourceCardSettings.widthByTask.value;
-        const isGroupedByTaskName: boolean = this.viewModel.settings.generalCardSettings.groupTasks.value;
+        const isGroupedByTaskName: boolean = this.viewModel.settings.taskGroupsCardSettings.groupTasks.value;
 
         if (isResourcesFilled && taskResourceShow) {
             const taskResource: Selection<Task> = taskSelection

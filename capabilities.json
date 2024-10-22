@@ -366,11 +366,6 @@
     "objects": {
         "general": {
             "properties": {
-                "groupTasks": {
-                    "type": {
-                        "bool": true
-                    }
-                },
                 "scrollToCurrentTime": {
                     "type": {
                         "bool": true
@@ -812,6 +807,16 @@
         },
         "taskGroups": {
             "properties": {
+                "groupTasks": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "subTaskShade": {
+                    "type": {
+                        "numeric": true
+                    }
+                },
                 "groupPadding": {
                     "type": {
                         "numeric": true

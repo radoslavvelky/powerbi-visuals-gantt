@@ -94,6 +94,7 @@
 	"Visual_DateType_ButtonWidth": "Šírka tlačítka",
  	"Visual_TaskGroups": "Skupiny úloh",
 	"Visual_TaskGroups_GroupPadding": "Posun skupiny",
+ 	"Visual_TaskGroups_SubTaskShade": "Tieň podskupiny",
 	"Visual_TaskRelationships": "Spojitosť úloh",
 	"Visual_TaskRelationships_Show": "Zobraziť",
 	"Visual_TaskRelationships_Position": "Pozícia",

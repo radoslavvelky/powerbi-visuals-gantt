@@ -94,6 +94,7 @@
 	"Visual_DateType_ButtonWidth": "Button Width",
 	"Visual_TaskGroups": "Task Groups",
 	"Visual_TaskGroups_GroupPadding": "Group Padding",
+	"Visual_TaskGroups_SubTaskShade": "Sub Task Shade",
 	"Visual_TaskRelationships": "Task Relationships",
 	"Visual_TaskRelationships_Show": "Show",
 	"Visual_TaskRelationships_Position": "Position",

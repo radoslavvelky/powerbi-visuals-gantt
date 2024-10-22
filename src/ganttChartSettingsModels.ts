@@ -97,8 +97,10 @@ class WidthSettings {
     public static readonly MinColumnSize: number = 0;
     public static readonly DefaultTaskGroupPaddingSize: number = 10;
     public static readonly MinTaskGroupPaddingSize: number = 0;
+    public static readonly DefaultSubTaskShadeSize: number = 0;
+    public static readonly MinSubTaskShadeSize: number = 0;
+    public static readonly MaxSubTaskShadeSize: number = 5;    
 }
-
 
 class HeightSettings {
     public static readonly DefaultFontSize: number = 40;
@@ -106,12 +108,6 @@ class HeightSettings {
 }
 
 export class GeneralCardSettings extends Card {
-
-    groupTasks = new formattingSettings.ToggleSwitch({
-        name: "groupTasks",
-        displayNameKey: "Visual_GroupTasks",
-        value: false
-    });
 
     scrollToCurrentTime = new formattingSettings.ToggleSwitch({
         name: "scrollToCurrentTime",
@@ -153,7 +149,7 @@ export class GeneralCardSettings extends Card {
 
     name: string = "general";
     displayNameKey: string = "Visual_General";
-    slices = [this.groupTasks, this.scrollToCurrentTime, this.displayGridLines, this.durationUnit, this.durationMin, this.barsRoundedCorners];
+    slices = [this.scrollToCurrentTime, this.displayGridLines, this.durationUnit, this.durationMin, this.barsRoundedCorners];
 }
 
 export class SubTasksCardSettings extends Card {
@@ -680,6 +676,28 @@ export class ColumnsCardSettings extends Card {
 }
 
 export class TaskGroupsCardSettings extends Card {
+    groupTasks = new formattingSettings.ToggleSwitch({
+        name: "groupTasks",
+        displayNameKey: "Visual_GroupTasks",
+        value: false
+    });
+
+    subTaskShade = new formattingSettings.NumUpDown({
+        name: "subTaskShade",
+        displayNameKey: "Visual_TaskGroups_SubTaskShade",
+        value: WidthSettings.DefaultSubTaskShadeSize,
+        options: {
+            minValue: {
+                type: powerbiVisualsApi.visuals.ValidatorType.Min,
+                value: WidthSettings.MinSubTaskShadeSize,
+            },
+            maxValue: {
+                type: powerbiVisualsApi.visuals.ValidatorType.Max,
+                value: WidthSettings.MaxSubTaskShadeSize,
+            },
+        }
+    });
+
     groupPadding = new formattingSettings.NumUpDown({
         name: "groupPadding",
         displayNameKey: "Visual_TaskGroups_GroupPadding",
@@ -694,7 +712,8 @@ export class TaskGroupsCardSettings extends Card {
 
     name: string = "taskGroups";
     displayNameKey: string = "Visual_TaskGroups";
-    slices = [this.groupPadding];
+    slices = [this.subTaskShade, this.groupPadding];    
+    topLevelSlice?: formattingSettings.SimpleSlice<any> = this.groupTasks;
 }
 
 export class TaskRelationshipsCardSettings extends Card {
