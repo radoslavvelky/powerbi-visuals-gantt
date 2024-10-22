@@ -74,6 +74,29 @@ export function drawDiamond(taskConfigHeight: number): string {
     return `M ${taskConfigHeight / 4} 0 ${taskConfigHeight / 2} ${taskConfigHeight / 2} ${taskConfigHeight / 4} ${taskConfigHeight} 0 ${taskConfigHeight / 2} Z`;
 }
 
+/**
+ * Draws a quadratic curve line using SVG path syntax.
+ *
+ * @param x1 - The x-coordinate of the start point of the curve.
+ * @param y1 - The y-coordinate of the start point of the curve.
+ * @param x2 - The x-coordinate of the end point of the curve.
+ * @param y2 - The y-coordinate of the end point of the curve.
+ * @param dx - The x-coordinate of the control point of the curve.
+ * @param dy - The y-coordinate of the control point of the curve.
+ *
+ * @returns A string representing the SVG path syntax for the quadratic curve line.
+ *          The dy parameter is used to position the control point at the middle position between y1 and y2.
+ *
+ * @remarks This function is specifically designed for use in a charting context, where dy should be the middle position between y1 and y2.
+ */
+export function drawQuadraticCurveLine(x1: number, y1: number, x2: number, y2: number, dx:number, dy: number): string {
+   //for this chart useCase dy should be ht middle position between y1 and y2
+   return `
+   M${x1},${y1}
+   Q${x1+dx},${y1+dy} ${x2},${y2} 
+   `;  
+}
+
 export function getRandomHexColor(): string {
     return getHexColorFromNumber(getRandomInteger(0, 16777215 + 1));
 }

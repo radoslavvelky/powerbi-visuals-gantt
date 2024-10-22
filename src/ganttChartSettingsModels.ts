@@ -88,7 +88,10 @@ class WidthSettings {
     public static readonly MinDateTypeButtonSize: number = 0;
     public static readonly DefaultColumnSize: number = 65;
     public static readonly MinColumnSize: number = 0;
+    public static readonly DefaultTaskGroupPaddingSize: number = 10;
+    public static readonly MinTaskGroupPaddingSize: number = 0;
 }
+
 
 class HeightSettings {
     public static readonly DefaultFontSize: number = 40;
@@ -574,12 +577,12 @@ export class ColumnsCardSettings extends Card {
     //Column 1
     columnColor1 = new formattingSettings.ColorPicker({
         name: "columnColor1",
-        displayNameKey: "Visual_DateType_ColumnColor1",
+        displayNameKey: "Visual_Columns_ColumnColor1",
         value: { value: "#CCCCCC" }
     });
     columnWidth1 = new formattingSettings.NumUpDown({
         name: "columnWidth1",
-        displayNameKey: "Visual_DateType_ColumnWidth1",
+        displayNameKey: "Visual_Columns_ColumnWidth1",
         value: WidthSettings.DefaultColumnSize,
         options: {
             minValue: {
@@ -592,12 +595,12 @@ export class ColumnsCardSettings extends Card {
     //Column 2
     columnColor2 = new formattingSettings.ColorPicker({
         name: "columnColor2",
-        displayNameKey: "Visual_DateType_ColumnColor2",
+        displayNameKey: "Visual_Columns_ColumnColor2",
         value: { value: "#CCCCCC" }
     });
     columnWidth2 = new formattingSettings.NumUpDown({
         name: "columnWidth2",
-        displayNameKey: "Visual_DateType_ColumnWidth2",
+        displayNameKey: "Visual_Columns_ColumnWidth2",
         value: WidthSettings.DefaultColumnSize,
         options: {
             minValue: {
@@ -610,12 +613,12 @@ export class ColumnsCardSettings extends Card {
     //Column 3
     columnColor3 = new formattingSettings.ColorPicker({
         name: "columnColor3",
-        displayNameKey: "Visual_DateType_ColumnColor3",
+        displayNameKey: "Visual_Columns_ColumnColor3",
         value: { value: "#CCCCCC" }
     });
     columnWidth3 = new formattingSettings.NumUpDown({
         name: "columnWidth3",
-        displayNameKey: "Visual_DateType_ColumnWidth3",
+        displayNameKey: "Visual_Columns_ColumnWidth3",
         value: WidthSettings.DefaultColumnSize,
         options: {
             minValue: {
@@ -628,12 +631,12 @@ export class ColumnsCardSettings extends Card {
     //Column 4
     columnColor4 = new formattingSettings.ColorPicker({
         name: "columnColor4",
-        displayNameKey: "Visual_DateType_ColumnColor4",
+        displayNameKey: "Visual_Columns_ColumnColor4",
         value: { value: "#CCCCCC" }
     });
     columnWidth4 = new formattingSettings.NumUpDown({
         name: "columnWidth4",
-        displayNameKey: "Visual_DateType_ColumnWidth4",
+        displayNameKey: "Visual_Columns_ColumnWidth4",
         value: WidthSettings.DefaultColumnSize,
         options: {
             minValue: {
@@ -646,12 +649,12 @@ export class ColumnsCardSettings extends Card {
     //Column 5
     columnColor5 = new formattingSettings.ColorPicker({
         name: "columnColor5",
-        displayNameKey: "Visual_DateType_ColumnColor5",
+        displayNameKey: "Visual_Columns_ColumnColor5",
         value: { value: "#CCCCCC" }
     });
     columnWidth5 = new formattingSettings.NumUpDown({
         name: "columnWidth5",
-        displayNameKey: "Visual_DateType_ColumnWidth5",
+        displayNameKey: "Visual_Columns_ColumnWidth5",
         value: WidthSettings.DefaultColumnSize,
         options: {
             minValue: {
@@ -669,6 +672,24 @@ export class ColumnsCardSettings extends Card {
             ];
 }
 
+export class TaskGroupsCardSettings extends Card {
+    groupPadding = new formattingSettings.NumUpDown({
+        name: "groupPadding",
+        displayNameKey: "Visual_TaskGroups_GroupPadding",
+        value: WidthSettings.DefaultTaskGroupPaddingSize,
+        options: {
+            minValue: {
+                type: powerbiVisualsApi.visuals.ValidatorType.Min,
+                value: WidthSettings.MinTaskGroupPaddingSize,
+            },
+        }
+    });
+
+    name: string = "taskGroups";
+    displayNameKey: string = "Visual_TaskGroups";
+    slices = [this.groupPadding];
+}
+
 export class GanttChartSettingsModel extends Model { 
     generalCardSettings = new GeneralCardSettings();
     collapsedTasksCardSettings = new CollapsedTasksCardSettings();
@@ -683,10 +704,12 @@ export class GanttChartSettingsModel extends Model {
     taskResourceCardSettings = new TaskResourceCardSettings();
     dateTypeCardSettings = new DateTypeCardSettings();
     columnsCardSettings = new ColumnsCardSettings();
+    taskGroupsCardSettings = new TaskGroupsCardSettings();
     
     cards = [this.generalCardSettings, this.collapsedTasksCardSettings, this.collapsedTasksUpdateIdCardSettings, this.daysOffCardSettings, this.legendCardSettings, 
             this.milestonesCardSettings, this.taskLabelsCardSettings, this.taskCompletionCardSettings, 
-            this.tooltipConfigCardSettings, this.taskConfigCardSettings, this.taskResourceCardSettings, this.dateTypeCardSettings, this.columnsCardSettings];
+            this.tooltipConfigCardSettings, this.taskConfigCardSettings, this.taskResourceCardSettings, 
+            this.dateTypeCardSettings, this.columnsCardSettings, this.taskGroupsCardSettings];
 
     
     setLocalizedOptions(localizationManager: ILocalizationManager) {

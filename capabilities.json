@@ -782,7 +782,17 @@
                     }
                 }
             }
+        },
+        "taskGroups": {
+            "properties": {
+                "groupPadding": {
+                    "type": {
+                        "numeric": true
+                    }
+                }
+            }
         }
+
     },
     "sorting": {
         "default": {}
