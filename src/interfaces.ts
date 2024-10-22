@@ -184,6 +184,15 @@ export interface MilestoneData {
     dataPoints: MilestoneDataPoint[];
 }
 
+export interface TaskColorsDataPoint {
+    color: string;
+    identity: ISelectionId;
+}
+
+export interface TaskColorsData {
+    dataPoints: TaskColorsDataPoint[];
+}
+
 export interface ColumnDataPoint {
     name: string;
     identity: ISelectionId;

@@ -13,6 +13,12 @@
             "kind": "Grouping"
         },
         {
+            "name": "TaskColors",
+            "displayName": "Task Colors",
+            "displayNameKey": "Role_TaskColors",
+            "kind": "Grouping"
+        },
+        {
             "name": "Columns",
             "displayName": "Columns",
             "displayNameKey": "Role_Columns",
@@ -95,6 +101,10 @@
                         "min": 1,
                         "max": 1
                     },
+                    "TaskColors": {
+                        "min": 0,
+                        "max": 1
+                    },
                     "Columns": {
                         "min": 0,
                         "max": 5
@@ -141,6 +151,10 @@
                         "min": 1,
                         "max": 1
                     },
+                    "TaskColors": {
+                        "min": 0,
+                        "max": 1
+                    },
                     "Columns": {
                         "min": 0,
                         "max": 5
@@ -187,6 +201,10 @@
                         "min": 0,
                         "max": 1
                     },
+                    "TaskColors": {
+                        "min": 0,
+                        "max": 1
+                    },
                     "Columns": {
                         "min": 0,
                         "max": 5
@@ -230,6 +248,10 @@
                         "max": 1
                     },
                     "Task": {
+                        "min": 0,
+                        "max": 1
+                    },
+                    "TaskColors": {
                         "min": 0,
                         "max": 1
                     },
@@ -282,6 +304,11 @@
                         {
                             "for": {
                                 "in": "Columns"
+                            }
+                        },
+                        {
+                            "for": {
+                                "in": "TaskColors"
                             }
                         },
                         {
@@ -788,6 +815,29 @@
                 "groupPadding": {
                     "type": {
                         "numeric": true
+                    }
+                }
+            }
+        },
+        "taskRelationships": {
+            "properties": {
+                "show": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "position": {
+                    "type": {
+                        "text": true
+                    }
+                },
+                "color": {
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
                     }
                 }
             }

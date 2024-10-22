@@ -108,7 +108,9 @@ import {
     TaskDaysOff,
     TaskTypeMetadata,
     TaskTypes,
-    ColumnSettings
+    ColumnSettings,
+    TaskColorsData,
+    TaskColorsDataPoint
 } from "./interfaces";
 import {DurationHelper} from "./durationHelper";
 import {GanttColumns} from "./columns";
@@ -816,6 +818,41 @@ export class Gantt implements IVisual {
             completionFormatter: ValueFormatter.create({ format: PercentFormat, value: 1, allowFormatBeautification: true })
         };
     }
+
+    public static createTaskColors(dataView: DataView, host: IVisualHost, settings: GanttChartSettingsModel, taskTypes: TaskTypes): TaskColorsData {
+        let taskColorsIndex = -1;
+        for (const index in dataView.categorical.categories) {
+            const category = dataView.categorical.categories[index];
+            if (category.source.roles.TaskColors) {
+                taskColorsIndex = +index;
+            }
+        }
+
+        const taskColorsData: TaskColorsData = {
+            dataPoints: []
+        };        
+
+        const taskColorsCategory = dataView.categorical.categories[taskColorsIndex];
+        const taskColors: { value: PrimitiveValue, index: number }[] = [];
+
+        if (taskColorsCategory && taskColorsCategory.values) {
+            taskColorsCategory.values.forEach((value: PrimitiveValue, index: number) => taskColors.push({ value, index }));
+            taskColors.forEach((taskColor) => {
+                //const taskColorsObjects = taskColorsCategory.objects?.[taskColor.index];
+                const selectionBuilder: ISelectionIdBuilder = host
+                    .createSelectionIdBuilder()
+                    .withCategory(taskColorsCategory, taskColor.index);
+
+                const taskColorsDataPoint: TaskColorsDataPoint = {
+                    identity: selectionBuilder.createSelectionId(),
+                    color: taskColor.value as string,
+                };
+                taskColorsData.dataPoints.push(taskColorsDataPoint);    
+            })
+        }
+        return taskColorsData;        
+    }
+
     /**
      * Creates a ColumnsData object from the provided dataView, host, settings, and localizationManager.
      * 
@@ -1021,7 +1058,8 @@ export class Gantt implements IVisual {
         formatters: GanttChartFormatters,
         colors: IColorPalette,
         settings: GanttChartSettingsModel,
-        taskColor: string,
+        defaultTaskColor: string,
+        taskColorsData: TaskColorsData,
         localizationManager: ILocalizationManager,
         isEndDateFilled: boolean,
         hasHighlights: boolean): Task[] {
@@ -1029,7 +1067,7 @@ export class Gantt implements IVisual {
 
         let tasks: Task[] = [];
         const addedParents: string[] = [];
-        taskColor = taskColor || Gantt.DefaultValues.TaskColor;
+        defaultTaskColor = defaultTaskColor || Gantt.DefaultValues.TaskColor;
 
         const values: GanttColumns<any> = GanttColumns.getCategoricalValues(dataView);
 
@@ -1053,7 +1091,7 @@ export class Gantt implements IVisual {
                 .createSelectionIdBuilder()
                 .withCategory(dataView.categorical.categories[0], index);
 
-            const taskGroupAttributes = this.computeTaskGroupAttributes(taskColor, groupValues, values, index, taskTypes, selectionBuilder, colorHelper, duration, settings, durationUnit);
+            const taskGroupAttributes = this.computeTaskGroupAttributes(defaultTaskColor, taskColorsData, groupValues, values, index, taskTypes, selectionBuilder, colorHelper, duration, settings, durationUnit);
             const { color, completion, taskType, wasDowngradeDurationUnit, stepDurationTransformation } = taskGroupAttributes;
 
             duration = taskGroupAttributes.duration;
@@ -1225,7 +1263,8 @@ export class Gantt implements IVisual {
     }
 
     private static computeTaskGroupAttributes(
-        taskColor: string,
+        defaultTaskColor: string,
+        taskColorsData: TaskColorsData,
         groupValues: GanttColumns<powerbi.DataViewValueColumn>[],
         values: GanttColumns<any>,
         index: number,
@@ -1235,7 +1274,7 @@ export class Gantt implements IVisual {
         duration: number,
         settings: GanttChartSettingsModel,
         durationUnit: DurationUnit) {
-        let color: string = taskColor;
+        let color: string = taskColorsData &&  taskColorsData.dataPoints[index]?.color ? taskColorsData.dataPoints[index].color : defaultTaskColor;
         let completion: number = 0;
         let taskType: TaskTypeMetadata = null;
         let wasDowngradeDurationUnit: boolean = false;
@@ -1647,12 +1686,15 @@ export class Gantt implements IVisual {
         const legendData: LegendData = Gantt.createLegend(host, colors, settings, taskTypes, !isDurationFilled && !isEndDateFilled);
         const milestonesData: MilestoneData = Gantt.createMilestones(dataView, host);
         const columnsData: ColumnsData = Gantt.createColumns(dataView, host, colors, settings, taskTypes, false);
+        const taskColorsData: TaskColorsData = Gantt.createTaskColors(dataView, host, settings, taskTypes);
+
+        console.log("taskColorsData: ", taskColorsData);
 
         const taskColor: string = (legendData.dataPoints?.length <= 1) || !isDurationFilled
             ? settings.taskConfigCardSettings.fill.value.value
             : null;
 
-        const tasks: Task[] = Gantt.createTasks(dataView, taskTypes, host, formatters, colors, settings, taskColor, localizationManager, isEndDateFilled, this.hasHighlights);
+        const tasks: Task[] = Gantt.createTasks(dataView, taskTypes, host, formatters, colors, settings, taskColor, taskColorsData, localizationManager, isEndDateFilled, this.hasHighlights);
 
         // Remove empty legend if tasks isn't exist
         const types = lodashGroupBy(tasks, x => x.taskType);

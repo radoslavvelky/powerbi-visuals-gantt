@@ -3,7 +3,7 @@ import {formattingSettings} from "powerbi-visuals-utils-formattingmodel";
 import {legendInterfaces} from "powerbi-visuals-utils-chartutils";
 import {LegendDataPoint} from "powerbi-visuals-utils-chartutils/lib/legend/legendInterfaces";
 import {ColorHelper} from "powerbi-visuals-utils-colorutils";
-import {MilestoneShape} from "./enums";
+import {MilestoneShape, RelationshipPosition} from "./enums";
 import {DateType} from "./enums";
 import {ResourceLabelPosition} from "./enums";
 import {DurationUnit} from "./enums";
@@ -69,6 +69,13 @@ const resourcePositionOptions : IEnumMember[] = [
     { displayName: "Visual_Position_Top", value: ResourceLabelPosition.Top },
     { displayName: "Visual_Position_Right", value: ResourceLabelPosition.Right },
     { displayName: "Visual_Position_Inside", value: ResourceLabelPosition.Inside }
+];
+
+const relationshipPositionOptions : IEnumMember[] = [
+    { displayName: "Visual_Relationships_Start_To_Finish", value: RelationshipPosition.StartFinish },
+    { displayName: "Visual_Relationships_Finish_To_Start", value: RelationshipPosition.FinishStart },
+    { displayName: "Visual_Relationships_Start_To_Start", value: RelationshipPosition.StartStart },
+    { displayName: "Visual_Relationships_Finish_To_Finish", value: RelationshipPosition.FinishFinish },
 ];
 
 class DurationMinSettings {
@@ -690,6 +697,32 @@ export class TaskGroupsCardSettings extends Card {
     slices = [this.groupPadding];
 }
 
+export class TaskRelationshipsCardSettings extends Card {
+    show = new formattingSettings.ToggleSwitch({
+        name: "show",
+        displayNameKey: "Visual_TaskRelationships_Show",
+        value: false
+    });
+    
+    position = new formattingSettings.ItemDropdown({
+        name: "position",
+        displayNameKey: "Visual_TaskRelationships_Position",
+        items: relationshipPositionOptions,
+        value: relationshipPositionOptions[1]
+    });
+
+    color = new formattingSettings.ColorPicker({
+        name: "color",
+        displayNameKey: "Visual_TaskRelationships_Color",
+        value: { value: "#CCCCCC" }
+    });
+
+    name: string = "taskRelationships";
+    displayNameKey: string = "Visual_TaskRelationships";
+    slices = [this.position, this.color];
+    topLevelSlice?: formattingSettings.SimpleSlice<any> = this.show;
+}
+
 export class GanttChartSettingsModel extends Model { 
     generalCardSettings = new GeneralCardSettings();
     collapsedTasksCardSettings = new CollapsedTasksCardSettings();
@@ -705,12 +738,12 @@ export class GanttChartSettingsModel extends Model {
     dateTypeCardSettings = new DateTypeCardSettings();
     columnsCardSettings = new ColumnsCardSettings();
     taskGroupsCardSettings = new TaskGroupsCardSettings();
+    taskRelationshipsCardSettings = new TaskRelationshipsCardSettings();
     
     cards = [this.generalCardSettings, this.collapsedTasksCardSettings, this.collapsedTasksUpdateIdCardSettings, this.daysOffCardSettings, this.legendCardSettings, 
             this.milestonesCardSettings, this.taskLabelsCardSettings, this.taskCompletionCardSettings, 
             this.tooltipConfigCardSettings, this.taskConfigCardSettings, this.taskResourceCardSettings, 
-            this.dateTypeCardSettings, this.columnsCardSettings, this.taskGroupsCardSettings];
-
+            this.taskGroupsCardSettings, this.taskRelationshipsCardSettings, this.columnsCardSettings, this.dateTypeCardSettings];
     
     setLocalizedOptions(localizationManager: ILocalizationManager) {
         this.setLocalizedDisplayName(durationUnitsOptions, localizationManager);
