@@ -48,6 +48,7 @@ import * as SVGUtil from "powerbi-visuals-utils-svgutils";
 import IMargin = SVGUtil.IMargin;
 
 import { GanttChartSettingsModel } from "./ganttChartSettingsModels";
+import { RelationshipPosition } from "./enums";
 
 export type DayOffData = [Date, number];
 
@@ -212,4 +213,22 @@ export interface ColumnsData {
 export interface ColumnSettings {
     color: string;
     width: number;
+}
+
+export interface TaskCoordinates {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    task: Task;
+}
+
+export interface TaskRelationships {
+    from: TaskCoordinates,
+    to: TaskCoordinates,
+    position: RelationshipPosition,
+    showArrow: boolean,
+    color: string,
+    lineWidth: number,
+    arrowSize: number,
 }

@@ -110,7 +110,9 @@ import {
     TaskTypes,
     ColumnSettings,
     TaskColorsData,
-    TaskColorsDataPoint
+    TaskColorsDataPoint,
+    TaskCoordinates,
+    TaskRelationships
 } from "./interfaces";
 import {DurationHelper} from "./durationHelper";
 import {GanttColumns} from "./columns";
@@ -123,14 +125,15 @@ import {
     drawCornerRoundedRectByPath,
     hashCode,
     isStringNotNullEmptyOrUndefined,
-    isValidDate
+    isValidDate,
+    drawQuadraticCurveLine
 } from "./utils";
 import {drawCollapseButton, drawExpandButton, drawMinusButton, drawPlusButton} from "./drawButtons";
 import {TextProperties} from "powerbi-visuals-utils-formattingutils/lib/src/interfaces";
 
 import {FormattingSettingsService} from "powerbi-visuals-utils-formattingmodel";
 import {DateTypeCardSettings, GanttChartSettingsModel} from "./ganttChartSettingsModels";
-import {DateType, DurationUnit, GanttRole, LabelForDate, MilestoneShape, ResourceLabelPosition} from "./enums";
+import {DateType, DurationUnit, GanttRole, LabelForDate, MilestoneShape, RelationshipPosition, ResourceLabelPosition} from "./enums";
 
 // d3
 type Selection<T1, T2 = T1> = d3Selection<any, T1, any, T2>;
@@ -242,6 +245,10 @@ export class Gantt implements IVisual {
     private static TaskLinesRect: ClassAndSelector = createClassAndSelector("task-lines-rect");
     private static TaskColumnRect: ClassAndSelector = createClassAndSelector("task-column-rect");
     private static TaskTopLine: ClassAndSelector = createClassAndSelector("task-top-line");
+    private static SingleRelationship: ClassAndSelector = createClassAndSelector("relationship");
+    private static Relationships: ClassAndSelector = createClassAndSelector("relationships");
+    private static TaskRelationshipGroup: ClassAndSelector = createClassAndSelector("task-relationship-group");
+    private static TaskRelationshipRect: ClassAndSelector = createClassAndSelector("task-relationship-rect");
     private static CollapseAll: ClassAndSelector = createClassAndSelector("collapse-all");
     private static CollapseAllArrow: ClassAndSelector = createClassAndSelector("collapse-all-arrow");
     private static Label: ClassAndSelector = createClassAndSelector("label");
@@ -379,6 +386,7 @@ export class Gantt implements IVisual {
     private axisGroup: Selection<any>;
     private chartGroup: Selection<any>;
     private taskGroup: Selection<any>;
+    private taskRelationshipsGroup: Selection<any>;
     private lineGroup: Selection<any>;
     private lineGroupWrapper: Selection<any>;
     private lineGroupColumnWrapper: Selection<any>[] = [];
@@ -399,6 +407,7 @@ export class Gantt implements IVisual {
     private hasNotNullableDates: boolean = false;
 
     private collapsedTasksUpdateIDs: string[] = [];
+    private taskCoordinates: TaskCoordinates[] = [];
 
     private currentDateType: DateType;  //DateType[settings.dateTypeCardSettings.type.value.value] //DateType[this.viewModel.settings.dateTypeCardSettings.type.value.value] 
 
@@ -447,6 +456,11 @@ export class Gantt implements IVisual {
         this.taskGroup = this.chartGroup
             .append("g")
             .classed(Gantt.Tasks.className, true);
+
+        // create tasks relationships container
+        this.taskRelationshipsGroup = this.chartGroup
+            .append("g")
+            .classed(Gantt.Relationships.className, true);
 
         // create task lines container
         this.lineGroup = this.ganttSvg
@@ -645,6 +659,15 @@ export class Gantt implements IVisual {
         this.chartGroup
             .selectAll(Gantt.SingleTask.selectorName)
             .remove();
+
+        this.chartGroup
+            .selectAll(Gantt.TaskRelationshipGroup.selectorName)
+            .remove();
+
+        this.chartGroup
+            .selectAll(Gantt.SingleRelationship.selectorName)
+            .remove();
+
     }
 
     /**
@@ -1982,7 +2005,7 @@ export class Gantt implements IVisual {
         this.updateTaskLabels(groupedTasks, settings.taskLabelsCardSettings.width.value);
         this.updateElementsPositions(this.margin);
         this.createMilestoneLine(groupedTasks);
-        this.updateTaskRelationships();
+        //this.renderTaskRelationships();
 
         if (this.formattingSettings.generalCardSettings.scrollToCurrentTime.value && this.hasNotNullableDates) {
             this.scrollToMilestoneLine(axisLength);
@@ -2392,8 +2415,6 @@ export class Gantt implements IVisual {
 
         this.updateCollapseAllGroup(categoriesAreaBackgroundColor, taskLabelsShow);
 
-        console.log("updateTaskLabels tasks: ", tasks);
-
         if (taskLabelsShow) {            
             this.lineGroupWrapper
                 .attr("width", taskLabelsWidth)
@@ -2682,7 +2703,161 @@ export class Gantt implements IVisual {
                 .attr("transform", SVGManipulations.translate(translateXValue, translateYValue));
     }
     
-    private updateTaskRelationships() {
+    private renderTaskRelationships() {
+            function drawTaskRelationshipStartToStart(selection: d3Selection<SVGElement, any, any, any>, 
+                                                      x1: number, y1: number, x2: number, y2: number, 
+                                                      color: string, showArrow: boolean, lineWidth: number, 
+                                                      arrowSize: number, lineHeight: number) {
+                selection
+                    .append("g")
+                    .append("path")
+                    .attr("d", drawQuadraticCurveLine(x1, y1, x1, y1 + lineHeight/2, -20, lineHeight/4))
+                    .style("fill", "none")
+                    .style("stroke", color)
+                    .style("stroke-width", lineWidth)        
+                                    
+                selection
+                    .append("g")
+                    .append("path")
+                    .attr("d", drawQuadraticCurveLine(x1, y1 + lineHeight/2, x2-lineHeight/2, y2 - lineHeight/2, 0, 0))
+                    .style("fill", "none")
+                    .style("stroke", color)
+                    .style("stroke-width", lineWidth)     
+
+                selection
+                    .append("g")
+                    .append("path")
+                    .attr("d", drawQuadraticCurveLine(x2-lineHeight/2, y2 - lineHeight/2, x2-lineHeight/2 + lineHeight/4, y2 - lineHeight/2 + lineHeight/4, lineHeight/4, lineHeight/8))
+                    .style("fill", "none")
+                    .style("stroke", color)
+                    .style("stroke-width", lineWidth)                                                
+
+                selection
+                    .append("g")
+                    .append("path")
+                    .attr("d", drawQuadraticCurveLine(x2, y2, x2-lineHeight/2 + lineHeight/4, y2 - lineHeight/2 + lineHeight/4, -lineHeight/4, -lineHeight/8))
+                    .style("fill", "none")
+                    .style("stroke", color)
+                    .style("stroke-width", lineWidth)      
+            }
+
+            function drawTaskRelationshipFinishToStart(selection: d3Selection<SVGElement, any, any, any>, 
+                                                       x1: number, y1: number, x2: number, y2: number, 
+                                                       color: string, showArrow: boolean, lineWidth: number, 
+                                                       arrowSize: number, lineHeight: number) {
+                selection
+                    .append("g")
+                    .append("path")
+                    .attr("d", drawQuadraticCurveLine(x1, y1, x1, y1 + lineHeight/2, 20, lineHeight/4))
+                    .style("fill", "none")
+                    .style("stroke", color)
+                    .style("stroke-width", lineWidth)        
+                selection
+                    .append("g")
+                    .append("path")
+                    .attr("d", drawQuadraticCurveLine(x1, y1 + lineHeight/2, x2, y2 - lineHeight/2, 0, 0))
+                    .style("fill", "none")
+                    .style("stroke", color)
+                    .style("stroke-width", lineWidth)        
+                selection
+                    .append("g")
+                    .append("path")
+                    .attr("d", drawQuadraticCurveLine(x2, y2, x2, y2 - lineHeight/2, -20, -lineHeight/4))
+                    .style("fill", "none")
+                    .style("stroke", color)
+                    .style("stroke-width", lineWidth)        
+            }
+            
+            function drawTaskRelationship(selection: d3Selection<SVGElement, any, any, any>, relationship: TaskRelationships) {
+                const taskFrom: TaskCoordinates = relationship.from;
+                const taskTo: TaskCoordinates = relationship.to;    
+            
+                
+                drawTaskRelationshipStartToStart(selection, taskFrom.x, taskFrom.y + taskFrom.height/2, taskTo.x, taskTo.y + taskTo.height/2, 
+                    relationship.color, relationship.showArrow, 
+                    relationship.lineWidth, relationship.arrowSize, 40);
+
+                /*    
+                drawTaskRelationshipFinishToStart(selection, taskFrom.x+taskFrom.width, taskFrom.y + taskFrom.height/2, taskTo.x, taskTo.y + taskTo.height/2, 
+                    relationship.color, relationship.showArrow, 
+                    relationship.lineWidth, relationship.arrowSize, 40);
+                    */
+                        
+            }
+
+            const drawRelationships = this.viewModel.settings.taskRelationshipsCardSettings.show.value;
+            if (!drawRelationships || this.taskCoordinates.length === 0) {
+                return;
+            }
+
+            const color:string = this.viewModel.settings.taskRelationshipsCardSettings.color.value.value;
+            const position: RelationshipPosition = RelationshipPosition[this.viewModel.settings.taskRelationshipsCardSettings.position.value.value];
+            const taskRelationships: TaskRelationships[] = []; 
+
+            //create pairs of tasks
+            let index = 0;
+            while (index < this.taskCoordinates.length - 1) {
+                const relationship: TaskRelationships = {
+                    from: this.taskCoordinates[index],
+                    to: this.taskCoordinates[index+1],
+                    position: position,
+                    showArrow: true,
+                    color: color,
+                    lineWidth: 2,
+                    arrowSize: 10
+                }
+                taskRelationships.push(relationship);
+                index++;
+            }
+
+            console.log("renderTaskRelationships taskRelationships: ", taskRelationships);
+
+            const taskRelationshipsGroupSelection: Selection<any> = this.taskRelationshipsGroup
+                .selectAll(Gantt.TaskRelationshipGroup.selectorName)
+                .data(taskRelationships);
+
+            taskRelationshipsGroupSelection
+                .exit()
+                .remove();
+
+            // render task group container
+            const taskRelationshipsGroupSelectionMerged = taskRelationshipsGroupSelection
+                .enter()
+                .append("g")
+                .merge(taskRelationshipsGroupSelection);
+
+            taskRelationshipsGroupSelectionMerged.classed(Gantt.TaskRelationshipGroup.className, true);
+
+            taskRelationshipsGroupSelectionMerged.each(function (relationship: TaskRelationships) {
+                console.log("relationshipRect each relationship: ", relationship)
+                const element = d3Select(this);
+                drawTaskRelationship(element, relationship);
+            });
+
+
+            /*
+            const relationshipRect: Selection<TaskRelationships> = taskRelationshipsGroupSelectionMerged
+                .selectAll(Gantt.TaskRelationshipRect.selectorName)
+                .data((d: TaskRelationships) => [d]);
+
+            relationshipRect
+                .exit()
+                .remove();
+
+            const relationshipRectMerged = relationshipRect
+                .enter()
+                .append("g")
+                .merge(relationshipRect);
+
+            relationshipRectMerged.classed(Gantt.SingleRelationship.className, true);
+
+            relationshipRectMerged.each(function (relationship: TaskRelationships) {
+                console.log("relationshipRect each relationship: ", relationship)
+                const element = d3Select(this);
+                drawTaskRelationship(element, relationship);
+            });
+            */
+
             //1. need to define at settings the type - startToStart, startToEnd, endToStart, endToEnd
             //2. get list of tasks for same hierarchy level (from - to task), get position of task on graph
             //3. detect if x position for end task is behind the start or before -> on this depends the combination of curved lines
@@ -3001,6 +3176,7 @@ export class Gantt implements IVisual {
         this.taskProgressRender(taskSelection);
         this.taskDaysOffRender(taskSelection, taskConfigHeight);
         this.taskResourceRender(taskSelection, taskConfigHeight);
+        this.renderTaskRelationships();
 
         this.renderTooltip(taskSelection);
     }
@@ -3095,8 +3271,7 @@ export class Gantt implements IVisual {
             ? Gantt.taskDurationToWidth(task.start, task.end)
             : 0;
     }
-
-
+        
     /**
      *
      * @param task
@@ -3110,6 +3285,14 @@ export class Gantt implements IVisual {
             height = Gantt.getBarHeight(taskConfigHeight),
             radius = Gantt.RectRound;
 
+        const taskCoordinates: TaskCoordinates = {
+            x,
+            y,
+            width,
+            height,
+            task
+        }    
+        this.taskCoordinates.push(taskCoordinates);
 
         if (barsRoundedCorners && width >= 2 * radius) {
             return drawRoundedRectByPath(x, y, width, height, radius);
@@ -3129,6 +3312,7 @@ export class Gantt implements IVisual {
         taskConfigHeight: number,
         barsRoundedCorners: boolean): void {
         const highContrastModeTaskRectStroke: number = 1;
+        this.taskCoordinates = [];
 
         const taskRect: Selection<Task> = taskSelection
             .selectAll(Gantt.TaskRect.selectorName)
