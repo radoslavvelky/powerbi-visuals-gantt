@@ -97,6 +97,14 @@ export function drawQuadraticCurveLine(x1: number, y1: number, x2: number, y2: n
    `;  
 }
 
+export function drawChainingQuadraticCurveLine(x1: number, y1: number, x2: number, y2: number): string {
+    return `
+    M${x1},${y1}
+    Q${x1+(x2-x1)/2},${y1} ${x1+(x2-x1)/2},${y1 + +(y2-y1)/2}
+    T${x2},${y2} 
+    `;  
+ }
+ 
 export function getRandomHexColor(): string {
     return getHexColorFromNumber(getRandomInteger(0, 16777215 + 1));
 }
