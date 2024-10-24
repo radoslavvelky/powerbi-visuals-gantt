@@ -72,10 +72,10 @@ const resourcePositionOptions : IEnumMember[] = [
 ];
 
 const relationshipPositionOptions : IEnumMember[] = [
-    { displayName: "Visual_Relationships_Start_To_Finish", value: RelationshipPosition.StartFinish },
-    { displayName: "Visual_Relationships_Finish_To_Start", value: RelationshipPosition.FinishStart },
-    { displayName: "Visual_Relationships_Start_To_Start", value: RelationshipPosition.StartStart },
-    { displayName: "Visual_Relationships_Finish_To_Finish", value: RelationshipPosition.FinishFinish },
+    { displayName: "Visual_Relationships_StartToFinish", value: RelationshipPosition.StartToFinish },
+    { displayName: "Visual_Relationships_FinishToStart", value: RelationshipPosition.FinishToStart },
+    { displayName: "Visual_Relationships_StartToStart", value: RelationshipPosition.StartToStart },
+    { displayName: "Visual_Relationships_FinishToFinish", value: RelationshipPosition.FinishToFinish },
 ];
 
 class DurationMinSettings {
@@ -771,6 +771,7 @@ export class GanttChartSettingsModel extends Model {
         this.setLocalizedDisplayName(shapesOptions, localizationManager);
         this.setLocalizedDisplayName(resourcePositionOptions, localizationManager);
         this.setLocalizedDisplayName(dateTypeOptions, localizationManager);
+        this.setLocalizedDisplayName(relationshipPositionOptions, localizationManager);
     }       
 
     populateMilestones(milestonesWithoutDuplicates: {

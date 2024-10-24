@@ -668,6 +668,7 @@ export class Gantt implements IVisual {
             .selectAll(Gantt.SingleRelationship.selectorName)
             .remove();
 
+
     }
 
     /**
@@ -2707,9 +2708,10 @@ export class Gantt implements IVisual {
             function drawTaskRelationshipStartToStart(selection: d3Selection<SVGElement, any, any, any>, 
                                                       x1: number, y1: number, x2: number, y2: number, 
                                                       color: string, showArrow: boolean, lineWidth: number, 
-                                                      arrowSize: number, lineHeight: number) {
+                                                      arrowSize: number, lineHeight: number, markerEnd: string ) {
                 selection
                     .append("g")
+                    .classed(Gantt.TaskRelationshipRect.className, true)
                     .append("path")
                     .attr("d", drawQuadraticCurveLine(x1, y1, x1, y1 + lineHeight/2, -20, lineHeight/4))
                     .style("fill", "none")
@@ -2718,6 +2720,7 @@ export class Gantt implements IVisual {
                                     
                 selection
                     .append("g")
+                    .classed(Gantt.TaskRelationshipRect.className, true)
                     .append("path")
                     .attr("d", drawQuadraticCurveLine(x1, y1 + lineHeight/2, x2-lineHeight/2, y2 - lineHeight/2, 0, 0))
                     .style("fill", "none")
@@ -2726,6 +2729,7 @@ export class Gantt implements IVisual {
 
                 selection
                     .append("g")
+                    .classed(Gantt.TaskRelationshipRect.className, true)
                     .append("path")
                     .attr("d", drawQuadraticCurveLine(x2-lineHeight/2, y2 - lineHeight/2, x2-lineHeight/2 + lineHeight/4, y2 - lineHeight/2 + lineHeight/4, lineHeight/4, lineHeight/8))
                     .style("fill", "none")
@@ -2734,19 +2738,22 @@ export class Gantt implements IVisual {
 
                 selection
                     .append("g")
+                    .classed(Gantt.TaskRelationshipRect.className, true)
                     .append("path")
                     .attr("d", drawQuadraticCurveLine(x2, y2, x2-lineHeight/2 + lineHeight/4, y2 - lineHeight/2 + lineHeight/4, -lineHeight/4, -lineHeight/8))
                     .style("fill", "none")
                     .style("stroke", color)
-                    .style("stroke-width", lineWidth)      
+                    .style("stroke-width", lineWidth)
+                    .style("marker-end", markerEnd ? markerEnd : "none")      
             }
 
             function drawTaskRelationshipFinishToStart(selection: d3Selection<SVGElement, any, any, any>, 
                                                        x1: number, y1: number, x2: number, y2: number, 
                                                        color: string, showArrow: boolean, lineWidth: number, 
-                                                       arrowSize: number, lineHeight: number) {
+                                                       arrowSize: number, lineHeight: number, markerEnd: string) {
                 selection
                     .append("g")
+                    .classed(Gantt.TaskRelationshipRect.className, true)
                     .append("path")
                     .attr("d", drawQuadraticCurveLine(x1, y1, x1, y1 + lineHeight/2, 20, lineHeight/4))
                     .style("fill", "none")
@@ -2754,6 +2761,7 @@ export class Gantt implements IVisual {
                     .style("stroke-width", lineWidth)        
                 selection
                     .append("g")
+                    .classed(Gantt.TaskRelationshipRect.className, true)
                     .append("path")
                     .attr("d", drawQuadraticCurveLine(x1, y1 + lineHeight/2, x2, y2 - lineHeight/2, 0, 0))
                     .style("fill", "none")
@@ -2761,27 +2769,28 @@ export class Gantt implements IVisual {
                     .style("stroke-width", lineWidth)        
                 selection
                     .append("g")
+                    .classed(Gantt.TaskRelationshipRect.className, true)
                     .append("path")
                     .attr("d", drawQuadraticCurveLine(x2, y2, x2, y2 - lineHeight/2, -20, -lineHeight/4))
                     .style("fill", "none")
                     .style("stroke", color)
-                    .style("stroke-width", lineWidth)        
+                    .style("stroke-width", lineWidth)   
+                    .style("marker-end", markerEnd ? markerEnd : "none")      
             }
             
             function drawTaskRelationship(selection: d3Selection<SVGElement, any, any, any>, relationship: TaskRelationships) {
                 const taskFrom: TaskCoordinates = relationship.from;
                 const taskTo: TaskCoordinates = relationship.to;    
             
-                
-                drawTaskRelationshipStartToStart(selection, taskFrom.x, taskFrom.y + taskFrom.height/2, taskTo.x, taskTo.y + taskTo.height/2, 
-                    relationship.color, relationship.showArrow, 
-                    relationship.lineWidth, relationship.arrowSize, 40);
+                if (relationship.position === RelationshipPosition.StartToStart)
+                    drawTaskRelationshipStartToStart(selection, taskFrom.x, taskFrom.y + taskFrom.height/2, taskTo.x, taskTo.y + taskTo.height/2, 
+                        relationship.color, relationship.showArrow, 
+                        relationship.lineWidth, relationship.arrowSize, 40, null);  //'url(#head1)'
 
-                /*    
-                drawTaskRelationshipFinishToStart(selection, taskFrom.x+taskFrom.width, taskFrom.y + taskFrom.height/2, taskTo.x, taskTo.y + taskTo.height/2, 
-                    relationship.color, relationship.showArrow, 
-                    relationship.lineWidth, relationship.arrowSize, 40);
-                    */
+                if (relationship.position === RelationshipPosition.FinishToStart)
+                    drawTaskRelationshipFinishToStart(selection, taskFrom.x+taskFrom.width, taskFrom.y + taskFrom.height/2, taskTo.x, taskTo.y + taskTo.height/2, 
+                        relationship.color, relationship.showArrow, 
+                        relationship.lineWidth, relationship.arrowSize, 40, null);
                         
             }
 
@@ -2825,15 +2834,16 @@ export class Gantt implements IVisual {
                 .enter()
                 .append("g")
                 .merge(taskRelationshipsGroupSelection);
-
             taskRelationshipsGroupSelectionMerged.classed(Gantt.TaskRelationshipGroup.className, true);
 
             taskRelationshipsGroupSelectionMerged.each(function (relationship: TaskRelationships) {
-                console.log("relationshipRect each relationship: ", relationship)
-                const element = d3Select(this);
-                drawTaskRelationship(element, relationship);
+                const relationshipElement = d3Select(this);
+                relationshipElement
+                    .selectAll(Gantt.TaskRelationshipRect.selectorName)
+                    .remove();
+    
+                drawTaskRelationship(relationshipElement, relationship);
             });
-
 
             /*
             const relationshipRect: Selection<TaskRelationships> = taskRelationshipsGroupSelectionMerged

@@ -43,10 +43,10 @@ export enum ResourceLabelPosition {
     Inside = "Inside"
 }
 export enum RelationshipPosition {
-    StartFinish = "StartFinish",
-    FinishStart = "FinishStart",
-    StartStart = "StartStart",
-    FinishFinish = "FinishFinish"
+    StartToFinish = "StartToFinish",
+    FinishToStart = "FinishToStart",
+    StartToStart = "StartToStart",
+    FinishToFinish = "FinishToFinish"
 }
 
 export enum GanttRole {
