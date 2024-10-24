@@ -2823,6 +2823,123 @@ export class Gantt implements IVisual {
                     .style("marker-end", markerMiddle ? markerMiddle : "none")      
             }
             
+            function drawTaskRelationshipFinishToFinish(selection: d3Selection<SVGElement, any, any, any>, 
+                x1: number, y1: number, x2: number, y2: number, 
+                color: string, lineWidth: number, 
+                lineHeight: number, markerBegin: string, markerMiddle:string, markerEnd: string ) {
+
+            if (Math.abs(x2 - x1) < lineHeight) {
+                selection
+                    .append("g")
+                    .classed(Gantt.TaskRelationshipRect.className, true)
+                    .append("path")
+                    .attr("d", drawQuadraticCurveLine(x1, y1, x2, y2, lineHeight/2, lineHeight/2))
+                    .style("fill", "none")
+                    .style("stroke", color)
+                    .style("stroke-width", lineWidth)
+                    .style("marker-end", markerEnd ? markerEnd : "none")      
+
+                return;
+            }
+
+            //Paint from end, otherwise middle arrows are repainted  
+            const middleX1 = x2 >= x1 ? x1+lineHeight/2 : x1;
+            const middleY1 = y1 + lineHeight/2;
+            const middleX2 = x2 >= x1 ? x2 : x2+lineHeight/2;
+            const middleY2 = y2 - lineHeight/2;
+            const isShortLine = Math.abs(middleX2 - middleX1) < 15 && Math.abs((middleY2) - (middleY1)) < 15;
+
+            selection
+                .append("g")
+                .classed(Gantt.TaskRelationshipRect.className, true)
+                .append("path")
+                .attr("d", x1 >= x2 ? drawChainingQuadraticCurveLine(middleX2, middleY2, x2, y2) : drawQuadraticCurveLine(middleX2, middleY2, x2, y2, lineHeight/2, lineHeight/4))
+                .style("fill", "none")
+                .style("stroke", color)
+                .style("stroke-width", lineWidth)
+                .style("marker-end", markerEnd ? markerEnd : "none")      
+
+            selection
+                .append("g")
+                .classed(Gantt.TaskRelationshipRect.className, true)
+                .append("path")
+                .attr("d", drawQuadraticCurveLine(middleX1, middleY1, middleX2, middleY2, 0, 0))
+                .style("fill", "none")
+                .style("stroke", color)
+                .style("stroke-width", lineWidth)     
+                .style("marker-end", markerMiddle && !isShortLine ? markerMiddle : "none")    
+
+            selection
+                .append("g")
+                .classed(Gantt.TaskRelationshipRect.className, true)
+                .append("path")
+                .attr("d", x1 >= x2 ? drawQuadraticCurveLine(x1, y1, middleX1, middleY1, lineHeight/2, lineHeight/4) : drawChainingQuadraticCurveLine(x1, y1, middleX1, middleY1))
+                .style("fill", "none")
+                .style("stroke", color)
+                .style("stroke-width", lineWidth)     
+                .style("marker-start", markerBegin ? markerBegin : "none")      
+                .style("marker-end", markerMiddle ? markerMiddle : "none")                                                                
+            }
+
+            function drawTaskRelationshipStartToFinish(selection: d3Selection<SVGElement, any, any, any>, 
+                x1: number, y1: number, x2: number, y2: number, 
+                color: string, lineWidth: number, 
+                lineHeight: number, markerBegin: string, markerMiddle:string, markerEnd: string ) {
+
+                if (Math.abs(x2 - x1) < lineHeight) {
+                    selection
+                        .append("g")
+                        .classed(Gantt.TaskRelationshipRect.className, true)
+                        .append("path")
+                        .attr("d", drawQuadraticCurveLine(x1, y1, x2, y2, -lineHeight/2, lineHeight/2))
+                        .style("fill", "none")
+                        .style("stroke", color)
+                        .style("stroke-width", lineWidth)
+                        .style("marker-end", markerEnd ? markerEnd : "none")      
+
+                    return;
+                }
+
+                //Paint from end, otherwise middle arrows are repainted  
+                const middleX1 = x2 >= x1 ? x1 : x1-lineHeight/2;
+                const middleY1 = y1 + lineHeight/2;
+                const middleX2 = x2 >= x1 ? x2 : x2+lineHeight/2;
+                const middleY2 = y2 - lineHeight/2;
+                const isShortLine = Math.abs(middleX2 - middleX1) < 15 && Math.abs((middleY2) - (middleY1)) < 15;
+
+                selection
+                    .append("g")
+                    .classed(Gantt.TaskRelationshipRect.className, true)
+                    .append("path")
+                    .attr("d", x2 >= x1 ? drawQuadraticCurveLine(middleX2, middleY2, x2, y2, lineHeight/2, lineHeight/4) : drawChainingQuadraticCurveLine(middleX2, middleY2, x2, y2))
+                    .style("fill", "none")
+                    .style("stroke", color)
+                    .style("stroke-width", lineWidth)
+                    .style("marker-end", markerEnd ? markerEnd : "none")      
+
+                selection
+                    .append("g")
+                    .classed(Gantt.TaskRelationshipRect.className, true)
+                    .append("path")
+                    .attr("d", drawQuadraticCurveLine(middleX1, middleY1, middleX2, middleY2, 0, 0))
+                    .style("fill", "none")
+                    .style("stroke", color)
+                    .style("stroke-width", lineWidth)     
+                    .style("marker-end", markerMiddle && !isShortLine ? markerMiddle : "none")    
+
+                selection
+                    .append("g")
+                    .classed(Gantt.TaskRelationshipRect.className, true)
+                    .append("path")
+                    .attr("d", x2 >= x1 ? drawQuadraticCurveLine(x1, y1, middleX1, middleY1, -lineHeight/2, lineHeight/4) : drawChainingQuadraticCurveLine(x1, y1, middleX1, middleY1))
+                    .style("fill", "none")
+                    .style("stroke", color)
+                    .style("stroke-width", lineWidth)     
+                    .style("marker-start", markerBegin ? markerBegin : "none")      
+                    .style("marker-end", markerMiddle ? markerMiddle : "none")                                                                    
+                }
+
+
             function drawTaskRelationship(selection: d3Selection<SVGElement, any, any, any>, relationship: TaskRelationships) {
                 const taskFrom: TaskCoordinates = relationship.from;
                 const taskTo: TaskCoordinates = relationship.to;    
@@ -2841,6 +2958,16 @@ export class Gantt implements IVisual {
                         taskTo.x, taskTo.y + taskTo.height/2, 
                         relationship.color, relationship.lineWidth, DefaultChartLineHeight, markerBegin, markerMiddle, markerEnd);
                         
+                if (relationship.position === RelationshipPosition.FinishToFinish)
+                    drawTaskRelationshipFinishToFinish(selection, taskFrom.x+taskFrom.width, taskFrom.y + taskFrom.height/2, 
+                        taskTo.x+taskTo.width, taskTo.y + taskTo.height/2, 
+                        relationship.color, relationship.lineWidth, DefaultChartLineHeight, markerBegin, markerMiddle, markerEnd);                                
+
+                if (relationship.position === RelationshipPosition.StartToFinish)
+                    drawTaskRelationshipStartToFinish(selection, taskFrom.x, taskFrom.y + taskFrom.height/2, 
+                        taskTo.x+taskTo.width, taskTo.y + taskTo.height/2, 
+                        relationship.color, relationship.lineWidth, DefaultChartLineHeight, markerBegin, markerMiddle, markerEnd);                                
+        
             }
 
             const drawRelationships = this.viewModel.settings.taskRelationshipsCardSettings.show.value;
