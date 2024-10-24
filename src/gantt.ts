@@ -2707,25 +2707,19 @@ export class Gantt implements IVisual {
     private renderTaskRelationships() {
             function drawTaskRelationshipStartToStart(selection: d3Selection<SVGElement, any, any, any>, 
                                                       x1: number, y1: number, x2: number, y2: number, 
-                                                      color: string, showArrow: boolean, lineWidth: number, 
-                                                      arrowSize: number, lineHeight: number, markerEnd: string ) {
+                                                      color: string, lineWidth: number, 
+                                                      lineHeight: number, markerBegin: string, markerMiddle:string, markerEnd: string ) {
+
+                //Paint from end, otherwise middle arrows are repainted                                                        
                 selection
                     .append("g")
                     .classed(Gantt.TaskRelationshipRect.className, true)
                     .append("path")
-                    .attr("d", drawQuadraticCurveLine(x1, y1, x1, y1 + lineHeight/2, -20, lineHeight/4))
+                    .attr("d", drawQuadraticCurveLine(x2-lineHeight/2 + lineHeight/4, y2 - lineHeight/2 + lineHeight/4, x2, y2, -lineHeight/16, lineHeight/8))
                     .style("fill", "none")
                     .style("stroke", color)
-                    .style("stroke-width", lineWidth)        
-                                    
-                selection
-                    .append("g")
-                    .classed(Gantt.TaskRelationshipRect.className, true)
-                    .append("path")
-                    .attr("d", drawQuadraticCurveLine(x1, y1 + lineHeight/2, x2-lineHeight/2, y2 - lineHeight/2, 0, 0))
-                    .style("fill", "none")
-                    .style("stroke", color)
-                    .style("stroke-width", lineWidth)     
+                    .style("stroke-width", lineWidth)
+                    .style("marker-end", markerEnd ? markerEnd : "none")      
 
                 selection
                     .append("g")
@@ -2734,63 +2728,90 @@ export class Gantt implements IVisual {
                     .attr("d", drawQuadraticCurveLine(x2-lineHeight/2, y2 - lineHeight/2, x2-lineHeight/2 + lineHeight/4, y2 - lineHeight/2 + lineHeight/4, lineHeight/4, lineHeight/8))
                     .style("fill", "none")
                     .style("stroke", color)
-                    .style("stroke-width", lineWidth)                                                
-
+                    .style("stroke-width", lineWidth)         
+                    
                 selection
                     .append("g")
                     .classed(Gantt.TaskRelationshipRect.className, true)
                     .append("path")
-                    .attr("d", drawQuadraticCurveLine(x2, y2, x2-lineHeight/2 + lineHeight/4, y2 - lineHeight/2 + lineHeight/4, -lineHeight/4, -lineHeight/8))
+                    .attr("d", drawQuadraticCurveLine(x1, y1 + lineHeight/2, x2-lineHeight/2, y2 - lineHeight/2, 0, 0))
                     .style("fill", "none")
                     .style("stroke", color)
-                    .style("stroke-width", lineWidth)
-                    .style("marker-end", markerEnd ? markerEnd : "none")      
+                    .style("stroke-width", lineWidth)     
+                    .style("marker-end", markerMiddle ? markerMiddle : "none")           
+                    
+                selection
+                    .append("g")
+                    .classed(Gantt.TaskRelationshipRect.className, true)
+                    .append("path")
+                    .attr("d", drawQuadraticCurveLine(x1, y1, x1, y1 + lineHeight/2, -20, lineHeight/4))
+                    .style("fill", "none")
+                    .style("stroke", color)
+                    .style("stroke-width", lineWidth)     
+                    .style("marker-start", markerBegin ? markerBegin : "none")      
+                    .style("marker-end", markerMiddle ? markerMiddle : "none")                                                                          
             }
 
             function drawTaskRelationshipFinishToStart(selection: d3Selection<SVGElement, any, any, any>, 
                                                        x1: number, y1: number, x2: number, y2: number, 
-                                                       color: string, showArrow: boolean, lineWidth: number, 
-                                                       arrowSize: number, lineHeight: number, markerEnd: string) {
+                                                       color: string, lineWidth: number, 
+                                                       lineHeight: number, markerBegin: string, markerMiddle:string, markerEnd: string) {
+
+                //Paint from end, otherwise middle arrows are repainted                                                        
                 selection
                     .append("g")
                     .classed(Gantt.TaskRelationshipRect.className, true)
                     .append("path")
-                    .attr("d", drawQuadraticCurveLine(x1, y1, x1, y1 + lineHeight/2, 20, lineHeight/4))
-                    .style("fill", "none")
-                    .style("stroke", color)
-                    .style("stroke-width", lineWidth)        
-                selection
-                    .append("g")
-                    .classed(Gantt.TaskRelationshipRect.className, true)
-                    .append("path")
-                    .attr("d", drawQuadraticCurveLine(x1, y1 + lineHeight/2, x2, y2 - lineHeight/2, 0, 0))
-                    .style("fill", "none")
-                    .style("stroke", color)
-                    .style("stroke-width", lineWidth)        
-                selection
-                    .append("g")
-                    .classed(Gantt.TaskRelationshipRect.className, true)
-                    .append("path")
-                    .attr("d", drawQuadraticCurveLine(x2, y2, x2, y2 - lineHeight/2, -20, -lineHeight/4))
+                    .attr("d", drawQuadraticCurveLine(x2, y2 - lineHeight/2, x2, y2, -20, lineHeight/4))
                     .style("fill", "none")
                     .style("stroke", color)
                     .style("stroke-width", lineWidth)   
                     .style("marker-end", markerEnd ? markerEnd : "none")      
+                           
+                const middleX1 = x1;
+                const middleY1 = y1 + lineHeight/2
+                const middleX2 = x2;
+                const middleY2 = y2 - lineHeight/2
+                const isShortLine = Math.abs(middleX2 - middleX1) < 15 && Math.abs((middleY2) - (middleY1)) < 15;
+                selection
+                    .append("g")
+                    .classed(Gantt.TaskRelationshipRect.className, true)
+                    .append("path")
+                    .attr("d", drawQuadraticCurveLine(middleX1, middleY1, middleX2, middleY2, 0, 0))
+                    .style("fill", "none")
+                    .style("stroke", color)
+                    .style("stroke-width", lineWidth)       
+                    .style("marker-end", markerMiddle && !isShortLine ? markerMiddle : "none")      
+                    
+                selection
+                    .append("g")
+                    .classed(Gantt.TaskRelationshipRect.className, true)
+                    .append("path")
+                    .attr("d", drawQuadraticCurveLine(x1, y1, middleX1, middleY1, 20, lineHeight/4))
+                    .style("fill", "none")
+                    .style("stroke", color)
+                    .style("stroke-width", lineWidth)        
+                    .style("marker-start", markerBegin ? markerBegin : "none")      
+                    .style("marker-end", markerMiddle ? markerMiddle : "none")      
             }
             
             function drawTaskRelationship(selection: d3Selection<SVGElement, any, any, any>, relationship: TaskRelationships) {
                 const taskFrom: TaskCoordinates = relationship.from;
                 const taskTo: TaskCoordinates = relationship.to;    
             
+                const markerBegin: string | null = relationship.showStartArrow ? "url(#arrow-orient)" : "none";
+                const markerMiddle: string | null = relationship.showMiddleArrow ? "url(#arrow-orient)" : "none";
+                const markerEnd: string | null = relationship.showEndArrow ? "url(#arrow-end)" : "none";
+
                 if (relationship.position === RelationshipPosition.StartToStart)
-                    drawTaskRelationshipStartToStart(selection, taskFrom.x, taskFrom.y + taskFrom.height/2, taskTo.x, taskTo.y + taskTo.height/2, 
-                        relationship.color, relationship.showArrow, 
-                        relationship.lineWidth, relationship.arrowSize, 40, null);  //'url(#head1)'
+                    drawTaskRelationshipStartToStart(selection, taskFrom.x, taskFrom.y + taskFrom.height/2, 
+                        taskTo.x, taskTo.y + taskTo.height/2, 
+                        relationship.color, relationship.lineWidth, 40, markerBegin, markerMiddle, markerEnd);  
 
                 if (relationship.position === RelationshipPosition.FinishToStart)
-                    drawTaskRelationshipFinishToStart(selection, taskFrom.x+taskFrom.width, taskFrom.y + taskFrom.height/2, taskTo.x, taskTo.y + taskTo.height/2, 
-                        relationship.color, relationship.showArrow, 
-                        relationship.lineWidth, relationship.arrowSize, 40, null);
+                    drawTaskRelationshipFinishToStart(selection, taskFrom.x+taskFrom.width, taskFrom.y + taskFrom.height/2, 
+                        taskTo.x, taskTo.y + taskTo.height/2, 
+                        relationship.color, relationship.lineWidth, 40, markerBegin, markerMiddle, markerEnd);
                         
             }
 
@@ -2800,7 +2821,13 @@ export class Gantt implements IVisual {
             }
 
             const color:string = this.viewModel.settings.taskRelationshipsCardSettings.color.value.value;
+            const arrowColor:string = this.viewModel.settings.taskRelationshipsCardSettings.arrowColor.value.value;
             const position: RelationshipPosition = RelationshipPosition[this.viewModel.settings.taskRelationshipsCardSettings.position.value.value];
+            const showEndArrow: boolean = this.viewModel.settings.taskRelationshipsCardSettings.endArrow.value;
+            const showStartArrow: boolean = this.viewModel.settings.taskRelationshipsCardSettings.startArrow.value;
+            const showMiddleArrow: boolean = this.viewModel.settings.taskRelationshipsCardSettings.middleArrow.value;
+            const arrowWidth:number = this.viewModel.settings.taskRelationshipsCardSettings.lineWidth.value;
+
             const taskRelationships: TaskRelationships[] = []; 
 
             //create pairs of tasks
@@ -2810,16 +2837,48 @@ export class Gantt implements IVisual {
                     from: this.taskCoordinates[index],
                     to: this.taskCoordinates[index+1],
                     position: position,
-                    showArrow: true,
+                    showEndArrow: showEndArrow,
+                    showStartArrow: showStartArrow,
+                    showMiddleArrow: showMiddleArrow,
                     color: color,
-                    lineWidth: 2,
-                    arrowSize: 10
+                    lineWidth: arrowWidth,
                 }
                 taskRelationships.push(relationship);
                 index++;
             }
 
             console.log("renderTaskRelationships taskRelationships: ", taskRelationships);
+
+            this.taskRelationshipsGroup
+                .selectAll("defs")
+                .remove();
+
+            const defs = this.taskRelationshipsGroup
+                .append("defs");
+
+            //Define Arrow                
+            defs
+                .append("marker")
+                .attr("id", "arrow-end")
+                .attr("refX", 0.1)
+                .attr("refY", 2)
+                .attr("markerWidth", 2)
+                .attr("markerHeight", 4)
+                .append("path")
+                .attr("d", "M0,0 V4 L2,2 Z")
+                .attr("fill", arrowColor)
+
+            defs
+                .append("marker")
+                .attr("id", "arrow-orient")
+                .attr("refX", 0.1)
+                .attr("refY", 2)
+                .attr("markerWidth", 2)
+                .attr("markerHeight", 4)
+                .attr("orient", "auto")
+                .append("path")
+                .attr("d", "M0,0 V4 L2,2 Z")
+                .attr("fill", arrowColor)
 
             const taskRelationshipsGroupSelection: Selection<any> = this.taskRelationshipsGroup
                 .selectAll(Gantt.TaskRelationshipGroup.selectorName)
@@ -2844,29 +2903,6 @@ export class Gantt implements IVisual {
     
                 drawTaskRelationship(relationshipElement, relationship);
             });
-
-            /*
-            const relationshipRect: Selection<TaskRelationships> = taskRelationshipsGroupSelectionMerged
-                .selectAll(Gantt.TaskRelationshipRect.selectorName)
-                .data((d: TaskRelationships) => [d]);
-
-            relationshipRect
-                .exit()
-                .remove();
-
-            const relationshipRectMerged = relationshipRect
-                .enter()
-                .append("g")
-                .merge(relationshipRect);
-
-            relationshipRectMerged.classed(Gantt.SingleRelationship.className, true);
-
-            relationshipRectMerged.each(function (relationship: TaskRelationships) {
-                console.log("relationshipRect each relationship: ", relationship)
-                const element = d3Select(this);
-                drawTaskRelationship(element, relationship);
-            });
-            */
 
             //1. need to define at settings the type - startToStart, startToEnd, endToStart, endToEnd
             //2. get list of tasks for same hierarchy level (from - to task), get position of task on graph

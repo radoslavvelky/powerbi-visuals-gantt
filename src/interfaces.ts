@@ -227,8 +227,9 @@ export interface TaskRelationships {
     from: TaskCoordinates,
     to: TaskCoordinates,
     position: RelationshipPosition,
-    showArrow: boolean,
+    showEndArrow: boolean,
+    showStartArrow: boolean,
+    showMiddleArrow: boolean,
     color: string,
     lineWidth: number,
-    arrowSize: number,
 }

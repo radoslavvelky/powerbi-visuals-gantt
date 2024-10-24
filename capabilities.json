@@ -844,7 +844,36 @@
                             }
                         }
                     }
-                }
+                },
+                "startArrow": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "endArrow": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "middleArrow": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "arrowColor": {
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "lineWidth": {
+                    "type": {
+                        "numeric": true
+                    }
+                }                
             }
         }
 

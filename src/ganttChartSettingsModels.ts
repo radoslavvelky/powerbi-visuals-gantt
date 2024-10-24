@@ -100,6 +100,9 @@ class WidthSettings {
     public static readonly DefaultSubTaskShadeSize: number = 0;
     public static readonly MinSubTaskShadeSize: number = 0;
     public static readonly MaxSubTaskShadeSize: number = 5;    
+    public static readonly DefaultRelationshipLineSize: number = 2;
+    public static readonly MinRelationshipLineSize: number = 1;
+    public static readonly MaxRelationshipLineSize: number = 5;    
 }
 
 class HeightSettings {
@@ -736,9 +739,49 @@ export class TaskRelationshipsCardSettings extends Card {
         value: { value: "#CCCCCC" }
     });
 
+    startArrow = new formattingSettings.ToggleSwitch({
+        name: "startArrow",
+        displayNameKey: "Visual_TaskRelationships_StartArrow",
+        value: false
+    });
+
+    endArrow = new formattingSettings.ToggleSwitch({
+        name: "endArrow",
+        displayNameKey: "Visual_TaskRelationships_EndArrow",
+        value: true
+    });
+
+    middleArrow = new formattingSettings.ToggleSwitch({
+        name: "middleArrow",
+        displayNameKey: "Visual_TaskRelationships_MiddleArrow",
+        value: false
+    });
+
+    arrowColor = new formattingSettings.ColorPicker({
+        name: "arrowColor",
+        displayNameKey: "Visual_TaskRelationships_ArrowColor",
+        value: { value: "#000000" }
+    });
+
+    lineWidth = new formattingSettings.NumUpDown({
+        name: "lineWidth",
+        displayNameKey: "Visual_TaskRelationships_LineWidth",
+        value: WidthSettings.DefaultRelationshipLineSize,
+        options: {
+            minValue: {
+                type: powerbiVisualsApi.visuals.ValidatorType.Min,
+                value: WidthSettings.MinRelationshipLineSize,
+            },
+            maxValue: {
+                type: powerbiVisualsApi.visuals.ValidatorType.Max,
+                value: WidthSettings.MaxRelationshipLineSize,
+            },
+        }
+    });
+
     name: string = "taskRelationships";
     displayNameKey: string = "Visual_TaskRelationships";
-    slices = [this.position, this.color];
+    slices = [this.position, this.color, this.lineWidth, this.startArrow, this.middleArrow, this.endArrow, this.arrowColor];
     topLevelSlice?: formattingSettings.SimpleSlice<any> = this.show;
 }
 
